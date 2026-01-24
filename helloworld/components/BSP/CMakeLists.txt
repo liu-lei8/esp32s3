@@ -1,4 +1,5 @@
 set(scr_dirs
+            SW_HW_PWM
             GPTIM_NEW
             GPTIM_OLD
             ESPTIM
@@ -8,6 +9,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            SW_HW_PWM
             GPTIM_NEW
             GPTIM_OLD
             ESPTIM

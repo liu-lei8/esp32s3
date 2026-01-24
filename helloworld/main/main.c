@@ -1,7 +1,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "gptim_new.h"
-#include "esp_log.h"
+#include "hw_pwm.h"
 #include "nvs_flash.h"
 
 void app_main(void)
@@ -14,28 +13,21 @@ void app_main(void)
         ret = nvs_flash_init();
     }
 
-    user_gptimer_config_t* user_gptimer_cfg = malloc(sizeof(user_gptimer_config_t));
+    ledc_config_t1 ledc_cfg = {
+        .duty = 0,
+        .duty_resolution = 13,
+        .freq_hz = 1000,
+        .ledc_channel_num = LEDC_PWM_CH1_CHANNEL,
+        .ledc_clk = LEDC_AUTO_CLK,
+        .ledc_gpio = LEDC_PWM_CH1_GPIO,
+        .ledc_timer_num = LEDC_PWM_TIMER1,
+    };
+    ledc_init1(&ledc_cfg);
 
-    user_gptimer_cfg->clk_src = GPTIMER_CLK_SRC_APB;
-    user_gptimer_cfg->timing_time = 1 * 1000000;
-    user_gptimer_cfg->alarm_value = user_gptimer_cfg->timing_time;
-    user_gptimer_cfg->gptimer_count_value = 0;
-    user_gptimer_cfg->gptimer_handle = NULL;
-    user_gptimer_cfg->auto_reload = false;
 
-    led_init();
-    user_gptimer_init(user_gptimer_cfg);
-    
-    ESP_LOGI("GPTimer", "GPTimer initialized with auto reload");
     while (1)
     {
-        if (user_gptimer_cfg->gptimer_count_value != 0)
-        {
-            ESP_LOGI("GPTimer", "gptimer count value: %llu", user_gptimer_cfg->gptimer_count_value);
-            user_gptimer_cfg->gptimer_count_value = 0;
-        }
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(10);
+        ledc_pwm_set_fade(&ledc_cfg, 100);
     }
-
-    free(user_gptimer_cfg);
 }
