@@ -1,4 +1,5 @@
 set(scr_dirs
+            WDT
             SW_HW_PWM
             GPTIM_NEW
             GPTIM_OLD
@@ -9,6 +10,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            WDT
             SW_HW_PWM
             GPTIM_NEW
             GPTIM_OLD
