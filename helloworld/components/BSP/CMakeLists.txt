@@ -1,4 +1,6 @@
 set(scr_dirs
+            XL9555
+            IIC
             WDT
             SW_HW_PWM
             GPTIM_NEW
@@ -10,6 +12,8 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            XL9555
+            IIC
             WDT
             SW_HW_PWM
             GPTIM_NEW
