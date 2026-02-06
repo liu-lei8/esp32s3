@@ -2,21 +2,22 @@
 
 #include "iic.h"
 #include "esp_log.h"
+#include "led.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define XL9555_INT_IO   GPIO_NUM_40
-#define XL9555_INT      gpio_get_level(XL9555_INT_IO)
-#define XL9555_ADDR       0x20
+#define XL9555_INT_IO       GPIO_NUM_40
+#define XL9555_INT          gpio_get_level(XL9555_INT_IO)
+#define XL9555_ADDR         0X20
 
 #define XL9555_INPUT_PORT0_REG      0x00
 #define XL9555_INPUT_PORT1_REG      0x01
 #define XL9555_OUTPUT_PORT0_REG     0x02
 #define XL9555_OUTPUT_PORT1_REG     0x03
 #define XL9555_INVERSION_PORT0_REG  0x04
-#define XL9555_INVERSION_PORT1_REG  0X05
-#define XL9555_CONFIG_PORT0_REG     0X06
-#define XL9555_CONFIG_PORT1_REG     0X07
+#define XL9555_INVERSION_PORT1_REG  0x05
+#define XL9555_CONFIG_PORT0_REG     0x06
+#define XL9555_CONFIG_PORT1_REG     0x07
 
 /*XL9555各个IO的功能*/
 #define AP_INT_IO        0x0001  /* AP3216C中断引脚P00 */
@@ -36,20 +37,20 @@
 #define KEY1_IO          0x4000  /*按键1引脚P16 */
 #define KEY0_IO          0x8000  /*按键0引脚P17 */
 
-#define KEY0                xl9555_pin_read(KEY0_IO)
-#define KEY1                xl9555_pin_read(KEY1_IO)
-#define KEY2                xl9555_pin_read(KEY2_IO)
-#define KEY3                xl9555_pin_read(KEY3_IO)
+#define KEY0    xl9555_pin_read(KEY0_IO)
+#define KEY1    xl9555_pin_read(KEY1_IO)
+#define KEY2    xl9555_pin_read(KEY2_IO)
+#define KEY3    xl9555_pin_read(KEY3_IO)
 
-#define KEY0_PRES           1
-#define KEY1_PRES           2
-#define KEY2_PRES           3
-#define KEY3_PRES           4
+#define KEY0_PRES   1
+#define KEY1_PRES   2
+#define KEY2_PRES   3
+#define KEY3_PRES   4
 
 void xl9555_init(i2c_obj_t self);
 esp_err_t xl9555_write_byte(uint8_t reg, uint8_t* data, size_t len);
-esp_err_t xl9555_pin_write(uint16_t pin, bool level);
+esp_err_t xl9555_pin_write(uint16_t xl9555_pin, bool level);
 esp_err_t xl9555_read_byte(uint8_t* data, size_t len);
-int xl9555_pin_read(uint16_t pin);
-uint16_t xl9555_ioconfig(uint16_t config_value);
-uint8_t xl9555_key_scan(uint8_t mode);
+bool xl9555_pin_read(uint16_t xl9555_pin);
+uint16_t xl9555_ioconfig(uint16_t ioconfig);
+uint8_t xl9555_key_scan(bool mode);
