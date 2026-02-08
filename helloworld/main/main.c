@@ -1,6 +1,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "iic.h"
+#include "iic_master.h"
 #include "xl9555.h"
 #include "nvs_flash.h"
 #include "led.h"
@@ -18,21 +18,30 @@ void show_message(void)
     printf("\n");
 }
 
-static esp_err_t i2c_probe(i2c_obj_t* self, uint8_t addr)
+static esp_err_t i2c_probe(iic_obj_t* self, uint8_t addr)
 {
     esp_err_t ret;
+    i2c_master_dev_handle_t dev_handle = NULL;
 
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, addr << 1, ACK_CHECK_EN);
-    i2c_master_stop(cmd);
-    ret = i2c_master_cmd_begin(self->port, cmd, pdMS_TO_TICKS(50));
-    i2c_cmd_link_delete(cmd);
+    // i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    // i2c_master_start(cmd);
+    // i2c_master_write_byte(cmd, addr << 1, ACK_CHECK_EN);
+    // i2c_master_stop(cmd);
+    // ret = i2c_master_cmd_begin(self->port, cmd, pdMS_TO_TICKS(50));
+    // i2c_cmd_link_delete(cmd);
+
+    i2c_device_config_t dev_cfg = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = addr,
+        .scl_speed_hz = IIC_FREQ,
+    };
+    ret = i2c_master_bus_add_device(self->bus_handle, &dev_cfg, &dev_handle);
+    i2c_master_bus_rm_device(dev_handle);
 
     return ret;
 }
 
-static void i2c_scan(i2c_obj_t* self)
+static void i2c_scan(iic_obj_t* self)
 {
     printf("I2C scanning...\n");
     for (uint8_t addr = 0x03; addr < 0x78; ++addr)
@@ -55,8 +64,8 @@ void app_main(void)
     }
 
     led_init();
-    i2c_obj_t iic0_master = iic_init(I2C_NUM_0);
-    i2c_scan(&iic0_master);
+    iic_obj_t iic0_master = iic_init_new(I2C_NUM_0);
+    //i2c_scan(&iic0_master);
     xl9555_init(iic0_master);
     show_message();
 

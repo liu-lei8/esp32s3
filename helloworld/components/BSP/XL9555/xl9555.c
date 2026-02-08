@@ -1,6 +1,6 @@
 #include "xl9555.h"
 
- i2c_obj_t xl9555_i2c_master;
+ iic_obj_t xl9555_i2c_master;
  TaskHandle_t key_task_handle = NULL;
 
 
@@ -55,18 +55,25 @@ static void xl9555_key_scan_task(void* arg)
     }
 }
 
-void xl9555_init(i2c_obj_t self)
+void xl9555_init(iic_obj_t self)
 {
     uint8_t r_data[2];
 
     if (self.init_flag != ESP_OK)
     {
-        xl9555_i2c_master = iic_init(self.port);
+        xl9555_i2c_master = iic_init_new(self.port);
     }
     else
     {
         xl9555_i2c_master = self;
     }
+
+    xl9555_read_byte(r_data, 2);    /*上电先读取一次清除中断标志*/
+    // 1. 清除任何可能存在的假中断标志
+    // 2. 让INT引脚恢复高电平
+    // 3. 重置内部的状态比较器
+    xl9555_ioconfig(0xF003);
+    xl9555_pin_write(BEEP_IO, 1);
 
     gpio_config_t xl9555_int_cfg = {
         .intr_type = GPIO_INTR_NEGEDGE,
@@ -83,23 +90,18 @@ void xl9555_init(i2c_obj_t self)
     gpio_isr_handler_add(XL9555_INT_IO, xl9555_intr_callback, &key_task_handle);
     gpio_intr_enable(XL9555_INT_IO);
 
-    xl9555_read_byte(r_data, 2);    /*上电先读取一次清除中断标志*/
-    // 1. 清除任何可能存在的假中断标志
-    // 2. 让INT引脚恢复高电平
-    // 3. 重置内部的状态比较器
-    xl9555_ioconfig(0xF003);
-    xl9555_pin_write(BEEP_IO, 1);
+
 
 }
 
 esp_err_t xl9555_write_byte(uint8_t reg, uint8_t* data, size_t len)
 {
-    i2c_buf_t bufs[2] = {
+    iic_buf_t bufs[2] = {
         {.buf = &reg, .len = 1},
         {.buf = data, .len = len}
     };
 
-    return iic_transfer(&xl9555_i2c_master, XL9555_ADDR, 2, bufs, IIC_FLAG_STOP);
+    return iic_transfer_new(&xl9555_i2c_master, XL9555_ADDR, 2, bufs, IIC_FLAG_STOP);
 }
 
 esp_err_t xl9555_pin_write(uint16_t xl9555_pin, bool level)
@@ -107,13 +109,20 @@ esp_err_t xl9555_pin_write(uint16_t xl9555_pin, bool level)
     uint8_t memaddr_buf[1] = {XL9555_OUTPUT_PORT0_REG};
     uint8_t data[2];
 
-    i2c_buf_t bufs[2] = {
+    printf("[DEBUG] Writing pin 0x%04X level: %d\n", xl9555_pin, level);    /*调试日志*/
+
+    iic_buf_t bufs[2] = {
         {.buf = memaddr_buf, .len = 1},
         {.buf = data, .len = 2}
     };
-    esp_err_t err = iic_transfer(&xl9555_i2c_master, XL9555_ADDR, 2, bufs, IIC_FLAG_READ | IIC_FLAG_STOP | IIC_FLAG_WRITE);
+    esp_err_t err = iic_transfer_new(&xl9555_i2c_master, XL9555_ADDR, 2, bufs, IIC_FLAG_READ | IIC_FLAG_STOP | IIC_FLAG_WRITE);
+    if (err != ESP_OK) {        /*调试日志*/
+        printf("[ERROR] Failed to read XL9555 output: %d\n", err);
+        return err;
+    }
 
     uint16_t ret = data[1] << 8 | data[0];
+    printf("[DEBUG] Current output state: 0x%04X\n", ret);       /*调试日志*/
 
     if (level)
     {
@@ -123,23 +132,29 @@ esp_err_t xl9555_pin_write(uint16_t xl9555_pin, bool level)
     {
         ret &= ~xl9555_pin;
     }
+    printf("[DEBUG] New output state: 0x%04X\n", ret);          /*调试日志*/
 
     data[0] = (uint8_t)(ret & 0xFF);
     data[1] = (uint8_t)((ret >> 8) & 0xFF);
 
-    return xl9555_write_byte(memaddr_buf[0], data, 2);
+    err = xl9555_write_byte(memaddr_buf[0], data, 2);
+    if (err != ESP_OK) {                                        /*调试日志*/
+        printf("[ERROR] Failed to write XL9555: %d\n", err);
+    }
+
+    return err;
 }
 
 esp_err_t xl9555_read_byte(uint8_t* data, size_t len)
 {
     uint8_t memaddr_buf[1] = {XL9555_INPUT_PORT0_REG};
 
-    i2c_buf_t bufs[2] = {
+    iic_buf_t bufs[2] = {
         {.buf = memaddr_buf, .len = 1},
         {.buf = data, .len = len}
     };
 
-    return iic_transfer(&xl9555_i2c_master, XL9555_ADDR, 2, bufs, IIC_FLAG_READ | IIC_FLAG_STOP | IIC_FLAG_WRITE);
+    return iic_transfer_new(&xl9555_i2c_master, XL9555_ADDR, 2, bufs, IIC_FLAG_READ | IIC_FLAG_STOP | IIC_FLAG_WRITE);
 }
 
 bool xl9555_pin_read(uint16_t xl9555_pin)
