@@ -21,7 +21,7 @@ soft_iic_t* soft_iic_init(gpio_num_t scl_pin, gpio_num_t sda_pin, uint32_t frequ
 
     /*计算延迟时间，每个周期需要4次延时（高电平，低电平，高变低，低变高）*/
     /*一个周期的时间是1/frequency,转化为微秒就是1000000/frequency*/
-    /*把一个周期的时间分成四等分，如果frequency = 100khz，那么此时延迟时间就为2.5us*/
+    /*把一个周期的时间分成四等分，如果frequency = 100khz，那么此时延迟时间就为2.5us,取整就是2us*/
     iic->delay_us = 1000000 / (frequency * 4);
     if (iic->delay_us == 0)
     {
@@ -51,7 +51,7 @@ void soft_iic_deinit(soft_iic_t* iic)
 static void soft_iic_gpio_init(soft_iic_t* iic)
 {
     gpio_config_t scl_cfg = {
-        .mode = GPIO_MODE_OUTPUT_OD,        /*open-drain开漏输出模式*/
+        .mode = GPIO_MODE_INPUT_OUTPUT_OD,        /*open-drain开漏输入输出模式*/
         .pin_bit_mask = 1ull << iic->scl_pin,
         .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
@@ -60,7 +60,7 @@ static void soft_iic_gpio_init(soft_iic_t* iic)
     gpio_config(&scl_cfg);
 
     gpio_config_t sda_cfg = {
-        .mode = GPIO_MODE_OUTPUT_OD,
+        .mode = GPIO_MODE_INPUT_OUTPUT_OD,
         .pin_bit_mask = 1ull << iic->sda_pin,
         .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,

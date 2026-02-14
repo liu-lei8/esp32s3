@@ -142,8 +142,14 @@ esp_err_t xl9555_read_byte(uint8_t* data, size_t len)
 bool xl9555_pin_read(uint16_t xl9555_pin)
 {
     uint8_t data[2];
-    xl9555_read_byte(data, 2);
+    esp_err_t err = xl9555_read_byte(data, 2);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE("xl9555", "failed to read input register");
+        return false;
+    }
     uint16_t ret = data[1] << 8 | data[0];
+    ESP_LOGI("xl9555", "xl9555_pin_read: %#X", ret);
 
     return (ret & xl9555_pin) ? 1 : 0;
 }
@@ -182,37 +188,38 @@ uint16_t xl9555_ioconfig(uint16_t ioconfig)
 uint8_t xl9555_key_scan(bool mode)
 {
     static bool boot_release = 1;      /*按键释放标志*/
+    bool key_level[4] = {KEY0, KEY1, KEY2, KEY3};
 
     if (mode)
     {
         boot_release = 1;
     }
 
-    if (boot_release && (KEY0  == 0 || KEY1 == 0 || KEY2 == 0 || KEY3 == 0))
+    if (boot_release && (key_level[0]  == 0 || key_level[1] == 0 || key_level[2] == 0 || key_level[3] == 0))
     {
         vTaskDelay(20);
-        if (KEY0 == 0)
+        if (key_level[0] == 0)
         {
             boot_release = 0;
             return KEY0_PRES;
         }
-        else if (KEY1 == 0)
+        else if (key_level[1] == 0)
         {
             boot_release = 0;
             return KEY1_PRES;
         }
-        else if (KEY2 == 0)
+        else if (key_level[2] == 0)
         {
             boot_release = 0;
             return KEY2_PRES;
         }
-        else if (KEY3 == 0)
+        else if (key_level[3] == 0)
         {
             boot_release = 0;
             return KEY3_PRES;
         } 
     }
-    else if (KEY0 == 1 && KEY1 == 1 && KEY2 == 1 && KEY3 == 1)
+    else if (key_level[0] == 1 && key_level[1] == 1 && key_level[2] == 1 && key_level[3] == 1)
     {
         boot_release = 1;
     }
