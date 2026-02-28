@@ -1,4 +1,5 @@
 set(scr_dirs
+            24CXX
             XL9555
             IIC
             WDT
@@ -12,6 +13,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            24CXX
             XL9555
             IIC
             WDT

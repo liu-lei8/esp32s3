@@ -1,6 +1,6 @@
 #pragma once
 
-#include "soft_iic.h"
+#include "iic.h"
 #include "esp_log.h"
 #include "led.h"
 #include "freertos/FreeRTOS.h"
@@ -47,7 +47,7 @@
 #define KEY2_PRES   3
 #define KEY3_PRES   4
 
-void xl9555_init(soft_iic_t* self);
+void xl9555_init(i2c_obj_t self);
 esp_err_t xl9555_write_byte(uint8_t reg, uint8_t* data, size_t len);
 esp_err_t xl9555_pin_write(uint16_t xl9555_pin, bool level);
 esp_err_t xl9555_read_byte(uint8_t* data, size_t len);
