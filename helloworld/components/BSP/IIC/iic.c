@@ -1,10 +1,12 @@
 #include "iic.h"
 
+SemaphoreHandle_t i2c_mutex;
 i2c_obj_t iic_master[I2C_NUM_MAX];
 
 i2c_obj_t iic_init(i2c_port_t port)
 {
     uint8_t i;
+    i2c_mutex = xSemaphoreCreateMutex();
 
     if (port == I2C_NUM_0)
     {
@@ -54,6 +56,8 @@ i2c_obj_t iic_init(i2c_port_t port)
 
 esp_err_t iic_transfer(i2c_obj_t* self, uint16_t addr, size_t n, i2c_buf_t* bufs, unsigned int flags)
 {
+    xSemaphoreTake(i2c_mutex, portMAX_DELAY);
+
     size_t data_len = 0;
     esp_err_t ret = ESP_FAIL;
 
@@ -96,5 +100,6 @@ esp_err_t iic_transfer(i2c_obj_t* self, uint16_t addr, size_t n, i2c_buf_t* bufs
     ret = i2c_master_cmd_begin(self->port, cmd, 100 * (1 + data_len) / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
+    xSemaphoreGive(i2c_mutex);
     return ret;
 }

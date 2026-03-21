@@ -26,6 +26,9 @@ uint8_t at24cxx_read_one_byte(uint16_t addr);
 esp_err_t at24cxx_check(void);
 void at24cxx_write(uint16_t addr, uint8_t* pbuf, uint16_t datalen);
 void at24cxx_read(uint16_t addr, uint8_t* pbuf, uint16_t datalen);
+/*下面为自创的页写时序*/
+void at24cxx_write_serial(uint16_t addr, uint8_t* pbuf, uint16_t datalen);
+void at24cxx_read_serial(uint16_t addr, uint8_t* pbuf, uint16_t datalen);
 
 
 #endif //__24CXX_H

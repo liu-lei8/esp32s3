@@ -64,13 +64,13 @@ void app_main(void)
         {
             case KEY0_PRES:
             {
-                at24cxx_write(0, (uint8_t*)g_text_buf, TEXT_SIZE);
+                at24cxx_write_serial(0, (uint8_t*)g_text_buf, TEXT_SIZE);
                 printf("The data written is %s\n", g_text_buf);
                 break;
             }
             case KEY1_PRES:
             {
-                at24cxx_read(0, datatemp, TEXT_SIZE);
+                at24cxx_read_serial(0, datatemp, TEXT_SIZE);
                 printf("The data read is %s\n", datatemp);
                 break;
             }

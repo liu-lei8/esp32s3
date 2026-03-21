@@ -162,7 +162,6 @@ bool xl9555_pin_read(uint16_t xl9555_pin)
         return false;
     }
     uint16_t ret = data[1] << 8 | data[0];
-    ESP_LOGI("xl9555", "xl9555_pin_read: %#X", ret);
 
     return (ret & xl9555_pin) ? 1 : 0;
 }
