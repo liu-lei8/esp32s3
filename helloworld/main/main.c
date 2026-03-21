@@ -1,25 +1,36 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "soft_iic.h"
-#include "xl9555.h"
 #include "nvs_flash.h"
 #include "led.h"
+#include "24cxx.h"
+#include "led.h"
+#include "iic.h"
+#include "xl9555.h"
 
-void show_message(void)
+i2c_obj_t i2c0_master;
+
+const uint8_t g_text_buf[] = "ESP32-S3 EEPROM";
+#define TEXT_SIZE   sizeof(g_text_buf)
+
+void show_mesg(void)
 {
+    /*串口输出实验信息*/
     printf("\n");
-    printf("*************************************\n");
-    printf("ESP32-S3\n");
-    printf("EXIO TEST\n");
-    printf("AUTHOR@LIU-LEI\n");
-    printf("KEY0:Beep On, KEY1:Beep Off\n");
-    printf("KEY2:Led On, KEY3:Led Off\n");
-    printf("*************************************\n");
+    printf("*********************************\n");
+    printf("esp32s3\n");
+    printf("IIC EEPROM TEST\n");
+    printf("GOOD@LIU-LEI\n");
+    printf("KEY0: Write Data, KEY1: Read Data\n");
+    printf("*********************************\n");
     printf("\n");
 }
 
 void app_main(void)
 {
+    uint8_t key;
+    uint8_t datatemp[TEXT_SIZE];
+    uint16_t i = 0;
+
     esp_err_t ret;
     ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
@@ -29,26 +40,49 @@ void app_main(void)
     }
 
     led_init();
-    soft_iic_t* iic_master = soft_iic_init(SOFT_IIC_SCL_PIN, SOFT_IIC_SDA_PIN, SOFT_IIC_FREQ);
-    if (iic_master == NULL) {
-        ESP_LOGE("main", "soft_iic_init failed");
-        return;
-    }
-
-    if (soft_iic_check_device(iic_master, XL9555_ADDR) == ESP_OK)
+    i2c0_master = iic_init(I2C_NUM_0);
+    xl9555_init(i2c0_master);
+    gpio_intr_disable(XL9555_INT_IO);
+    at24cxx_init(i2c0_master);
+    show_mesg();
+    esp_err_t err = at24cxx_check();
+    if (err != ESP_OK)
     {
-        ESP_LOGI("main", "found device addr: %#X", XL9555_ADDR);
-    } else {
-        ESP_LOGE("main", "XL9555 device not found!");
-        // 可根据需要选择 return 或继续
+        while (1)
+        {
+            printf("at24cxx check failed, please check!\n");
+            vTaskDelay(500);
+            LED_TOGGLE();
+        }
     }
-    xl9555_init(iic_master);
-    show_message();
+    printf("24C32 Ready!\n\n");
 
     while (1)
     {
-        vTaskDelay(200);
-    }
+        key = xl9555_key_scan(0);
+        switch (key)
+        {
+            case KEY0_PRES:
+            {
+                at24cxx_write_serial(0, (uint8_t*)g_text_buf, TEXT_SIZE);
+                printf("The data written is %s\n", g_text_buf);
+                break;
+            }
+            case KEY1_PRES:
+            {
+                at24cxx_read_serial(0, datatemp, TEXT_SIZE);
+                printf("The data read is %s\n", datatemp);
+                break;
+            }
+            default: break;
+        }
 
-    soft_iic_deinit(iic_master);
+        i++;
+        if (i == 20)
+        {
+            LED_TOGGLE();
+            i = 0;
+        }
+        vTaskDelay(10);
+    }
 }

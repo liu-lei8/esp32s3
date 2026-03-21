@@ -1,6 +1,6 @@
 #include "xl9555.h"
 
- soft_iic_t* xl9555_i2c_master;
+ i2c_obj_t xl9555_i2c_master;
  TaskHandle_t key_task_handle = NULL;
 
 static void IRAM_ATTR xl9555_intr_callback(void *arg)
@@ -54,13 +54,13 @@ static void xl9555_key_scan_task(void* arg)
     }
 }
 
-void xl9555_init(soft_iic_t* self)
+void xl9555_init(i2c_obj_t self)
 {
     uint8_t r_data[2];
 
-    if (self == NULL || !self->initialized)
+    if (self.init_flag != ESP_OK)
     {
-        xl9555_i2c_master = soft_iic_init(SOFT_IIC_SCL_PIN, SOFT_IIC_SDA_PIN, SOFT_IIC_FREQ);
+        xl9555_i2c_master = iic_init(I2C_NUM_0);
     }
     else
     {
@@ -93,16 +93,25 @@ void xl9555_init(soft_iic_t* self)
 
 esp_err_t xl9555_write_byte(uint8_t reg, uint8_t* data, size_t len)
 {
-    return soft_iic_write(xl9555_i2c_master, XL9555_ADDR, reg, data, len);
+    i2c_buf_t bufs[2] = {
+        {.buf = &reg, .len = 1},
+        {.buf = data, .len = len}
+    };
+    return iic_transfer(&xl9555_i2c_master, XL9555_ADDR, 2, bufs, IIC_FLAG_STOP);
 }
 
 esp_err_t xl9555_pin_write(uint16_t xl9555_pin, bool level)
 {
     uint8_t data[2];
+    uint8_t reg_memory = XL9555_OUTPUT_PORT0_REG;
+    i2c_buf_t bufs[2] = {
+        {.buf = &reg_memory, .len = 1},
+        {.buf = data, .len = 2}
+    };
 
     printf("[DEBUG] Writing pin 0x%04X level: %d\n", xl9555_pin, level);    /*调试日志*/
 
-    esp_err_t err = soft_iic_read(xl9555_i2c_master, XL9555_ADDR, XL9555_OUTPUT_PORT0_REG, data, 2);
+    esp_err_t err = iic_transfer(&xl9555_i2c_master, XL9555_ADDR, 2, bufs, IIC_FLAG_READ | IIC_FLAG_STOP | IIC_FLAG_WRITE);
     if (err != ESP_OK) {        /*调试日志*/
         printf("[ERROR] Failed to read XL9555 output: %d\n", err);
         return err;
@@ -135,8 +144,12 @@ esp_err_t xl9555_pin_write(uint16_t xl9555_pin, bool level)
 esp_err_t xl9555_read_byte(uint8_t* data, size_t len)
 {
     uint8_t memaddr_buf[1] = {XL9555_INPUT_PORT0_REG};
+    i2c_buf_t bufs[2] = {
+        {.buf = memaddr_buf, .len = 1},
+        {.buf = data, .len = len}
+    };
 
-    return soft_iic_read(xl9555_i2c_master, XL9555_ADDR, memaddr_buf[0], data, len);
+    return iic_transfer(&xl9555_i2c_master, XL9555_ADDR, 2, bufs, IIC_FLAG_WRITE | IIC_FLAG_READ | IIC_FLAG_STOP);
 }
 
 bool xl9555_pin_read(uint16_t xl9555_pin)
@@ -149,7 +162,6 @@ bool xl9555_pin_read(uint16_t xl9555_pin)
         return false;
     }
     uint16_t ret = data[1] << 8 | data[0];
-    ESP_LOGI("xl9555", "xl9555_pin_read: %#X", ret);
 
     return (ret & xl9555_pin) ? 1 : 0;
 }
