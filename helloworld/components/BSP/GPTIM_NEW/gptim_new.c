@@ -31,7 +31,7 @@ void user_gptimer_init(user_gptimer_config_t* user_gptimer_cfg)
         .clk_src = user_gptimer_cfg->clk_src,
         .direction = GPTIMER_COUNT_UP,
         .flags.intr_shared = false,
-        .resolution_hz = 1000000,
+        .resolution_hz = 1000000, 
     };
     ESP_ERROR_CHECK(gptimer_new_timer(&gptimer_cfg, &user_gptimer_cfg->gptimer_handle));
 

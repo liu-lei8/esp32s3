@@ -33,3 +33,4 @@ typedef struct {
 
 i2c_obj_t iic_init(i2c_port_t port);
 esp_err_t iic_transfer(i2c_obj_t* self, uint16_t addr, size_t n, i2c_buf_t* bufs, unsigned int flags);
+void iic_scan(i2c_obj_t self);
