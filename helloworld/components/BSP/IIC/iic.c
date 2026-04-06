@@ -114,6 +114,7 @@ void iic_scan(i2c_obj_t self)
         i2c_master_stop(cmd);
         esp_err_t err = i2c_master_cmd_begin(self.port, cmd, pdMS_TO_TICKS(1000));
         i2c_cmd_link_delete(cmd);
+        vTaskDelay(pdMS_TO_TICKS(1));
         if (err == ESP_OK)
         {
             ESP_LOGI("SCAN", "Device found at %#X", addr);

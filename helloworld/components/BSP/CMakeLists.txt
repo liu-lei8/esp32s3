@@ -1,4 +1,6 @@
 set(scr_dirs
+            SPI
+            LCD
             OLED
             24CXX
             XL9555
@@ -14,6 +16,8 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            SPI
+            LCD
             OLED
             24CXX
             XL9555
