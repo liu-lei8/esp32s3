@@ -103,3 +103,21 @@ esp_err_t iic_transfer(i2c_obj_t* self, uint16_t addr, size_t n, i2c_buf_t* bufs
     xSemaphoreGive(i2c_mutex);
     return ret;
 }
+
+void iic_scan(i2c_obj_t self)
+{
+    for (uint8_t addr = 0; addr < 128; addr++)
+    {
+        i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+        i2c_master_start(cmd);
+        i2c_master_write_byte(cmd, addr << 1, ACK_CHECK_EN);
+        i2c_master_stop(cmd);
+        esp_err_t err = i2c_master_cmd_begin(self.port, cmd, pdMS_TO_TICKS(1000));
+        i2c_cmd_link_delete(cmd);
+        vTaskDelay(pdMS_TO_TICKS(1));
+        if (err == ESP_OK)
+        {
+            ESP_LOGI("SCAN", "Device found at %#X", addr);
+        }
+    }
+}

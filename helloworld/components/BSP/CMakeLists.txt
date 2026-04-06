@@ -1,4 +1,7 @@
 set(scr_dirs
+            SPI
+            LCD
+            OLED
             24CXX
             XL9555
             IIC
@@ -13,6 +16,9 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            SPI
+            LCD
+            OLED
             24CXX
             XL9555
             IIC
@@ -27,6 +33,7 @@ set(include_dirs
             LED)
 
 set(requires
+            esp_lcd
             esp_timer
             driver)
 
