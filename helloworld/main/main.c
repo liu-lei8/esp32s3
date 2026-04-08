@@ -1,7 +1,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "nvs_flash.h"
-//#include "oledfont.h"
 #include "iic.h"
 #include "oled.h"
 #include "led.h"
@@ -19,8 +18,9 @@ void app_main(void)
 
     led_init();
     i2c_obj_t i2c0_master = iic_init(I2C_NUM_0);
-    iic_scan(i2c0_master);
+    xl9555_init(i2c0_master);   /*这里作用只是用于复位引脚，4脚的oled是没用的*/
     oled_init(i2c0_master);
+    iic_scan(i2c0_master);
 
     oled_show_string(0, 0, "ALIENTEK", 24);
     oled_show_string(0, 24, "0.96' OLED TEST", 16);
