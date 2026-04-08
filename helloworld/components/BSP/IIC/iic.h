@@ -22,8 +22,8 @@ typedef struct {
 #define IIC_FLAG_WRITE  0x04
 
 /*引脚与相关参数定义*/
-#define IIC0_SDA_GPIO_PIN           GPIO_NUM_41
-#define IIC0_SCL_GPIO_PIN           GPIO_NUM_42
+#define IIC0_SDA_GPIO_PIN           GPIO_NUM_8
+#define IIC0_SCL_GPIO_PIN           GPIO_NUM_9
 #define IIC1_SDA_GPIO_PIN           GPIO_NUM_4
 #define IIC1_SCL_GPIO_PIN           GPIO_NUM_5
 #define IIC_FREQ                    400000
