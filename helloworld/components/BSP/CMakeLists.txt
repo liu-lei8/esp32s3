@@ -1,4 +1,5 @@
 set(scr_dirs
+            RTC
             SPI
             LCD
             OLED
@@ -16,6 +17,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            RTC
             SPI
             LCD
             OLED
@@ -33,9 +35,13 @@ set(include_dirs
             LED)
 
 set(requires
+            newlib
             esp_lcd
             esp_timer
             driver)
+#[[
+1.newlib依赖库用于BSP中的RTC(是一个专为嵌入式系统设计的、开源的、轻量级C标准库实现)
+]]
 
 idf_component_register(SRC_DIRS ${scr_dirs} INCLUDE_DIRS ${include_dirs} 
                         REQUIRES ${requires})

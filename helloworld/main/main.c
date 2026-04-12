@@ -1,15 +1,21 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "nvs_flash.h"
-#include "iic.h"
-#include "oled.h"
 #include "led.h"
+#include "iic.h"
+#include "spi.h"
 #include "xl9555.h"
+#include "lcd.h"
+#include "esp_rtc.h"
+
+i2c_obj_t i2c0_master;
+const char* weekdays[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saterday"};
 
 void app_main(void)
 {
     esp_err_t ret;
-    i2c_obj_t iic0_master;
+    uint8_t tbuf[40];
+    uint8_t t = 0;
 
     ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
@@ -19,31 +25,41 @@ void app_main(void)
     }
 
     led_init();
-    i2c_obj_t i2c0_master = iic_init(I2C_NUM_0);
-    xl9555_init(i2c0_master);   /*这里作用只是用于复位引脚，4脚的oled是没用的*/
-    oled_init(i2c0_master);
-    iic_scan(i2c0_master);
+    i2c0_master = iic_init(I2C_NUM_0);
+    spi2_init();
+    xl9555_init(i2c0_master);
+    lcd_init();
+    rtc_set_time(2026, 4, 11, 19, 53, 0);
 
-    oled_show_string(0, 0, "ALIENTEK", 24);
-    oled_show_string(0, 24, "0.96' OLED TEST", 16);
-    oled_show_string(0, 40, "LIULEI 2026/3/24", 12);
-    oled_show_string(0, 52, "ASCII:", 12);
-    oled_show_string(64, 52, "CODE:", 12);
-    oled_reflash_gram();            /*更新显示到oled*/
+    lcd_show_string(10, 40, "ESP32", RED, WHITE, 32, 1);
+    lcd_show_string(10, 80, "RTC Test", RED, WHITE, 24, 1);
+    lcd_show_string(10, 110, "AUTHOR@LIU-LEI", RED, WHITE, 16, 1);
 
-    uint8_t t = ' ';
-    while (1)
+    while(1)
     {
-        oled_show_char(36, 52, t, 12, 1);
-        oled_show_num(94, 52, t, 12);
-        oled_reflash_gram();
-        if (t == '~')
+        t++;
+        if(t % 100 == 0)     /*每1000ms打印一次*/
         {
-            t = ' ';
-        }
-        ++t;
-        LED_TOGGLE();
-        vTaskDelay(1000);
-    }
+            rtc_get_time();
 
+            sprintf((char*)tbuf, "Time: %02d:%02d:%02d", calendar.hour, calendar.min, calendar.sec);
+            printf("Time: %02d:%02d:%02d\n", calendar.hour, calendar.min, calendar.sec);
+            lcd_show_string(10, 130, (char*)tbuf, BLUE, WHITE, 16, 0);
+
+            sprintf((char*)tbuf, "Date: %04d-%02d-%02d", calendar.year, calendar.month, calendar.date);
+            printf("Date: %04d-%02d-%02d\n", calendar.year, calendar.month, calendar.date);
+            lcd_show_string(10, 150, (char*)tbuf, BLUE, WHITE, 16, 0);
+
+            sprintf((char*)tbuf, "Week: %s", weekdays[calendar.week]);
+            printf("Week: %s\n", weekdays[calendar.week]);
+            lcd_show_string(10, 170, (char*)tbuf, BLUE, WHITE, 16, 0);
+            t = 0;
+        }
+
+        if (t % 50 == 0)    /*每500ms翻转一次led*/
+        {
+            LED_TOGGLE();
+        }
+        vTaskDelay(10);
+    }
 }
