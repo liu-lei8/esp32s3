@@ -1,4 +1,5 @@
 set(scr_dirs
+            ADC
             RTC
             SPI
             LCD
@@ -17,6 +18,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            ADC
             RTC
             SPI
             LCD
@@ -35,6 +37,7 @@ set(include_dirs
             LED)
 
 set(requires
+            esp_adc
             newlib
             esp_lcd
             esp_timer
