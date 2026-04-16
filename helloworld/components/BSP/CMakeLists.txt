@@ -1,4 +1,5 @@
 set(scr_dirs
+            AP3216C
             ADC
             RTC
             SPI
@@ -18,6 +19,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            AP3216C
             ADC
             RTC
             SPI

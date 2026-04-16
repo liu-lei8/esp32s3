@@ -603,3 +603,38 @@ void lcd_show_picture0(uint8_t picture, uint16_t fc, uint16_t bc)
 
     heap_caps_free(line_buf);
 }
+
+void lcd_show_num(uint16_t x, uint16_t y, uint32_t data, uint16_t bit, uint16_t fc, uint16_t bc, uint8_t sizey, uint8_t mode)
+{
+    uint8_t buf[9];             /*用于存储十进制中的位数值，buf[0]存储十进制最低位*/
+    uint32_t p = 0;
+    uint8_t real_bit = 1;           /*用于判断传入数据data的十进制的实际位数,当传入数据为0时，默认实际位数为1*/
+
+    /*将数据data的个十百千位一直到第亿位的值存放到buf*/
+    for (uint8_t i = 0; i < bit; i++)
+    {
+        buf[i] = (data % (uint32_t)pow(10, (double)(i + 1))) / (uint32_t)pow(10, i);
+    }
+    
+    for (int8_t i = bit - 1; i >= 0; i--)
+    {
+        if (buf[i])             /*从十进制高位开始找起，只要找到非0就说明该位为最高位*/
+        {
+            real_bit = i + 1;
+            break;
+        }
+    }
+    
+    for (int8_t i = real_bit - 1; i >= 0; i--)
+    {
+        lcd_show_char(x, y, buf[i] + 48, fc, bc, sizey, mode);
+        x += sizey / 2;
+    }
+    
+    /*如果要输入的数据data的最高bit为5位，但是实际位数real_bit为3位，那么填充最后2位为背景色*/
+    if (real_bit < bit)
+    {
+        lcd_fill(x, x + (sizey / 2) * (bit - real_bit) - 1, y, y + sizey - 1, bc);
+    }
+
+}

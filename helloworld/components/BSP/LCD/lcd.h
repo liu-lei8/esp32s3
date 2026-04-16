@@ -4,6 +4,7 @@
 #include "xl9555.h"
 #include "spi.h"
 #include "lcdfont.h"
+#include <math.h>
 
 #define LCD_NUM_WR      GPIO_NUM_40
 #define LCD_NUM_CS      GPIO_NUM_21     /*因为spi从机只有lcd，所以这里将片选直接接地，省下一个引脚*/
@@ -146,3 +147,12 @@ void lcd_show_picture(uint8_t picture, uint16_t fc, uint16_t bc, uint8_t mode);
 
 /*该函数只能叠加模式。查找像素模板的逻辑不同于上面函数而已，功能一样*/
 void lcd_show_picture0(uint8_t picture, uint16_t fc, uint16_t bc);
+
+/**
+ * @brief   将十进制的数据显示到lcd屏幕
+ * @note    bit为data可能传入的最高位数，该函数最高支持9位十进制数据data，当实际数据data位数<bit,那么后面位将被填充为背景色
+ * @param   data:传入的数据
+ * @param   bit:传入十进制数据的可能最高位数，值为1表示只有个位，2表示有十位和个位
+ * @retval  无
+ */
+void lcd_show_num(uint16_t x, uint16_t y, uint32_t data, uint16_t bit, uint16_t fc, uint16_t bc, uint8_t sizey, uint8_t mode);
