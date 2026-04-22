@@ -26,6 +26,7 @@ void lcd_init(void)
         .mode = 3,
         .spics_io_num = -1,     /*片选线直接接地了*/
         .queue_size = 7,
+        .flags = SPI_DEVICE_HALFDUPLEX      /*半双工，只读不写*/
     };
     ret = spi_bus_add_device(SPI2_HOST, &devcfg, &my_lcd_handle);
     ESP_ERROR_CHECK(ret);

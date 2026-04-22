@@ -6,7 +6,7 @@
 #include "lcdfont.h"
 #include <math.h>
 
-#define LCD_NUM_WR      GPIO_NUM_40
+#define LCD_NUM_WR      GPIO_NUM_40     /*写命令/写数据*/
 #define LCD_NUM_CS      GPIO_NUM_21     /*因为spi从机只有lcd，所以这里将片选直接接地，省下一个引脚*/
 
 #define LCD_WR(x)       do{ x ? \

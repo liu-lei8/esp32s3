@@ -1,4 +1,5 @@
 set(scr_dirs
+            REMOTE
             AP3216C
             ADC
             RTC
@@ -19,6 +20,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            REMOTE
             AP3216C
             ADC
             RTC
