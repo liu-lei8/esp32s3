@@ -1,12 +1,17 @@
-#include "rmt_nec_rx.h"
+#include "rmt_nec_rx_tx.h"
 
 uint16_t s_nec_code_address = 0x0000;
 uint16_t s_nec_code_command = 0x0000;
 
 QueueHandle_t receive_queue = NULL;
 rmt_channel_handle_t rx_channel = NULL;
+rmt_channel_handle_t tx_channel = NULL;
 rmt_symbol_word_t raw_symbols[64];
 rmt_receive_config_t receive_config;
+rmt_transmit_config_t transmit_config;
+
+rmt_encoder_handle_t nec_encoder = NULL;
+ir_nec_scan_code_t scan_code = {0};
 
 static bool rmt_nec_rx_done_callback(rmt_channel_handle_t rx_chan, const rmt_rx_done_event_data_t *edata, void *user_ctx)
 {
@@ -44,6 +49,44 @@ esp_err_t rmt_nec_rx_init(void)
 
     ESP_ERROR_CHECK(rmt_enable(rx_channel));        /*使能RMT通道*/
     ESP_ERROR_CHECK(rmt_receive(rx_channel, raw_symbols, sizeof(raw_symbols), &receive_config));                                /*准备接收*/
+
+    return ESP_OK;
+}
+
+esp_err_t rmt_nec_tx_init(void)
+{
+    ESP_LOGI("rmt_tx", "Creat RMT TX channel");
+    gpio_reset_pin(RMT_OUT_GPIO_PIN);
+
+    rmt_tx_channel_config_t tx_channel_cfg = {
+        .clk_src = RMT_CLK_SRC_DEFAULT,
+        .resolution_hz = RMT_RESOLUTION_HZ,
+        .gpio_num = RMT_OUT_GPIO_PIN,
+        .trans_queue_depth = 4,     /*允许在后台挂起的事务数，rmt_tx_wait_all_done该函数会等待所有事务传输完毕*/
+        .mem_block_symbols = 64,
+    };
+    ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_channel_cfg, &tx_channel));  /*创建RMT发送通道*/
+
+    /*配置载波与占空比*/
+    ESP_LOGI("rmt_tx", "Modulate carrier to TX channel");
+    rmt_carrier_config_t carrier_cfg = {
+        .frequency_hz = 38000,      /*载波频率38KHz，0表示禁用载波*/
+        .duty_cycle = 0.33          /*载波占空比,发送红外光的占空比一般为1/3*/
+    };
+    /*对发送通道应用载波调制功能*/
+    ESP_ERROR_CHECK(rmt_apply_carrier(tx_channel, &carrier_cfg));
+
+    transmit_config.loop_count = 0;    /*0为不循环，-1为无限循环发送*/
+
+    /*配置NEC编码器*/
+    ESP_LOGI("rmt_tx", "Install IR NEC encoder");
+    ir_nec_encoder_config_t nec_encoder_cfg = {
+        .resolution = RMT_RESOLUTION_HZ,
+    };
+    ESP_ERROR_CHECK(rmt_new_ir_nec_encoder(&nec_encoder_cfg, &nec_encoder));
+
+    ESP_ERROR_CHECK(rmt_enable(tx_channel));    /*使能发送通道*/
+    ESP_ERROR_CHECK(rmt_transmit(tx_channel, nec_encoder, &scan_code, sizeof(scan_code), &transmit_config));    /*开始通过RMT通道传输数据*/
 
     return ESP_OK;
 }
@@ -184,3 +227,31 @@ void rmt_rx_scan(rmt_symbol_word_t* rmt_nec_symbols, size_t num_symbols)
 
 }
 
+void rmt_rx_scan1(rmt_symbol_word_t* rmt_nec_symbols, size_t num_symbols)
+{
+    uint8_t tbuf[10];
+
+    switch (num_symbols)
+    {
+        case 34:
+        {
+            if (rmt_nec_parse_frame(rmt_nec_symbols))
+            {
+                lcd_fill(110, 134, 160, 176, WHITE);
+                sprintf((char*)tbuf, "%d", s_nec_code_command);
+                printf("RX KEYCNT = %d\n", s_nec_code_command);
+                lcd_show_string(110, 160, (char*)tbuf, BLUE, WHITE, 16, 1);
+            }
+            break;
+        }
+        case 2:
+        {
+            if (rmt_nec_check_repeat(rmt_nec_symbols))
+            {
+                printf("RX KEYCNT: %d, repeat\n", s_nec_code_command);
+            }
+            break;
+        }
+        default: printf("Unknown NEC frame\n\n"); break;
+    }
+}
