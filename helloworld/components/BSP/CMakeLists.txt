@@ -1,4 +1,5 @@
 set(scr_dirs
+            TEMPERATURE_SENSOR
             REMOTE
             AP3216C
             ADC
@@ -20,6 +21,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            TEMPERATURE_SENSOR
             REMOTE
             AP3216C
             ADC
