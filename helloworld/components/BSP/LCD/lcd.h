@@ -150,7 +150,7 @@ void lcd_show_picture0(uint8_t picture, uint16_t fc, uint16_t bc);
 
 /**
  * @brief   将十进制的数据显示到lcd屏幕
- * @note    bit为data可能传入的最高位数，该函数最高支持9位十进制数据data，当实际数据data位数<bit,那么后面位将被填充为背景色
+ * @note    bit为data可能传入的最高位数，该函数最高支持9位十进制数据data，当实际数据data位数<bit,那么后面位将被填充为背景色，所以最终显示的数据是左对齐的
  * @param   data:传入的数据
  * @param   bit:传入十进制数据的可能最高位数，值为1表示只有个位，2表示有十位和个位
  * @retval  无

@@ -1,4 +1,5 @@
 set(scr_dirs
+            DS18B20
             TEMPERATURE_SENSOR
             REMOTE
             AP3216C
@@ -21,6 +22,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            DS18B20
             TEMPERATURE_SENSOR
             REMOTE
             AP3216C
