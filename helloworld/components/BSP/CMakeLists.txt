@@ -1,4 +1,5 @@
 set(scr_dirs
+            DHT11
             DS18B20
             TEMPERATURE_SENSOR
             REMOTE
@@ -22,6 +23,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            DHT11
             DS18B20
             TEMPERATURE_SENSOR
             REMOTE
@@ -54,7 +56,8 @@ set(requires
 1.newlib依赖库用于BSP中的RTC(是一个专为嵌入式系统设计的、开源的、轻量级C标准库实现)
 ]]
 
-idf_component_register(SRC_DIRS ${scr_dirs} INCLUDE_DIRS ${include_dirs} 
-                        REQUIRES ${requires})
+idf_component_register(SRC_DIRS ${scr_dirs}
+                       INCLUDE_DIRS ${include_dirs} 
+                       REQUIRES ${requires})
 
-component_compile_options(-ffast-math -O3 -Wno-error=format=-Wno-format)
+component_compile_options(-ffast-math -O3 -Wno-error=format -Wno-format)
