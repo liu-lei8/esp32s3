@@ -1,4 +1,5 @@
 set(scr_dirs
+            RNG
             DHT11
             DS18B20
             TEMPERATURE_SENSOR
@@ -23,6 +24,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            RNG
             DHT11
             DS18B20
             TEMPERATURE_SENSOR
