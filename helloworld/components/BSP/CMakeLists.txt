@@ -1,4 +1,5 @@
 set(scr_dirs
+            QMA6100P
             RNG
             DHT11
             DS18B20
@@ -24,6 +25,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            QMA6100P
             RNG
             DHT11
             DS18B20
