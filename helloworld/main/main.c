@@ -1,10 +1,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "iic.h"
-#include "spi.h"
-#include "xl9555.h"
-#include "lcd.h"
-#include "qma6100p.h"
+#include "ltdc.h"
 #include "led.h"
 #include "nvs_flash.h"
 
@@ -13,9 +9,8 @@ i2c_obj_t i2c0_master;
 void app_main(void)
 {
     esp_err_t ret;
-    uint8_t t = 0;
-    qma6100p_rawdata_t data;
-    char buf[10];
+    char lcd_id[14];
+    uint8_t x = 0;
 
     ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
@@ -25,46 +20,36 @@ void app_main(void)
     }
 
     led_init();
-    i2c0_master = iic_init(I2C_NUM_0);
-    spi2_init();
+    ltdc_init();
 
-    iic_scan(i2c0_master);
+    sprintf(lcd_id, "LCD ID:%#04x", ltdcdev.id);
 
-    xl9555_init(i2c0_master);
-    lcd_init();
-    qma6100p_init(i2c0_master);
-
-    lcd_show_string(30, 30, "ESP32-S3", RED, WHITE, 32, 1);
-    lcd_show_string(30, 70, "QMA6100P TEST", RED, WHITE, 24, 1);
-    lcd_show_string(30, 100, "AUTHOR@LIU-LEI", RED, WHITE, 16, 1);
-    lcd_show_string(30, 120, "ACC_X: ", RED, WHITE, 16, 1);
-    lcd_show_string(30, 140, "ACC_Y: ", RED, WHITE, 16, 1);
-    lcd_show_string(30, 160, "ACC_Z: ", RED, WHITE, 16, 1);
-    lcd_show_string(30, 180, "Picth: ", RED, WHITE, 16, 1);
-    lcd_show_string(30, 200, "Roll : ", RED, WHITE, 16, 1);
-
-    while(1)
+    while (1)
     {
-        vTaskDelay(10);
-        ++t;
-
-        if (t == 20)
+        switch (x)
         {
-            qma6100p_read_rawdata(&data);
-
-            sprintf(buf, "%3.1f", data.acc_x);
-            lcd_show_string(30 + 7 * 8, 120, buf, BLUE, WHITE, 16, 0);
-            sprintf(buf, "%3.1f", data.acc_y);
-            lcd_show_string(30 + 7 * 8, 140, buf, BLUE, WHITE, 16, 0);
-            sprintf(buf, "%3.1f", data.acc_z);
-            lcd_show_string(30 + 7 * 8, 160, buf, BLUE, WHITE, 16, 0);
-            sprintf(buf, "%3.1f", data.pitch);
-            lcd_show_string(30 + 7 * 8, 180, buf, BLUE, WHITE, 16, 0);
-            sprintf(buf, "%3.1f", data.roll);
-            lcd_show_string(30 + 7 * 8, 200, buf, BLUE, WHITE, 16, 0);
-
-            t = 0;
-            LED_TOGGLE();
+            case 0:ltdc_clear(WHITE); break;
+            case 1:ltdc_clear(BLACK); break;
+            case 2:ltdc_clear(RED); break;
+            case 3:ltdc_clear(GREEN); break;
+            case 4:ltdc_clear(BLUE); break;
+            case 5:ltdc_clear(MAGENTA); break;
+            case 6:ltdc_clear(YELLOW); break;
+            case 7:ltdc_clear(CYAN); break;
         }
+
+        ltdc_show_string(30, 50, "ESP32-S3", 32, RED, WHITE, 1);
+        ltdc_show_string(30, 90, "LTDC TEST", 24, RED ,WHITE, 1);
+        ltdc_show_string(30, 120, "AUTHOR@LIE-LEI", 16, RED, WHITE, 1);
+        ltdc_show_string(30, 140, lcd_id, 16, RED, WHITE, 1);
+
+        x++;
+        if (x == 8)
+        {
+            x = 0;
+        }
+
+        LED_TOGGLE();
+        vTaskDelay(1000);
     }
 }

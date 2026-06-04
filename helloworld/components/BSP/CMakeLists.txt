@@ -1,4 +1,5 @@
 set(scr_dirs
+            RGBLCD
             QMA6100P
             RNG
             DHT11
@@ -25,6 +26,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            RGBLCD
             QMA6100P
             RNG
             DHT11
