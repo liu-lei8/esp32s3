@@ -1,4 +1,5 @@
 set(scr_dirs
+            RGBLCD_TOUCH
             RGBLCD
             QMA6100P
             RNG
@@ -26,6 +27,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            RGBLCD_TOUCH
             RGBLCD
             QMA6100P
             RNG
@@ -53,6 +55,8 @@ set(include_dirs
             LED)
 
 set(requires
+            log
+            esp_common
             esp_adc
             newlib
             esp_lcd

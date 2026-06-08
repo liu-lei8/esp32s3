@@ -29,7 +29,7 @@
 #define GBC_LED_IO       0x0040  /* ATK_MODULE接口LED引脚P06 */
 #define GBC_KEY_IO       0x0080  /* ATK_MODULE接口KEY引脚P07 */
 #define LCD_BL_IO        0x0100  /* RGB屏背光控制引脚P10 */
-#define CT_RST_IO        0x0200  /*触摸屏中断引脚P11 */
+#define CT_RST_IO        0x0200  /*触摸屏复位引脚P11 */
 #define SLCD_RST_IO      0x0400  /*SPI_LCD复位引脚P12 */
 #define SLCD_PWR_IO      0x0800  /* SPI_LCD控制背光引脚P13 */
 #define KEY3_IO          0x1000  /*按键3引脚P14 */
