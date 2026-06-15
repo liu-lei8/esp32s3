@@ -89,6 +89,8 @@ typedef struct{
 #define SCREEN_WIDTH    LCD_W
 #define SCREEN_HEIGHT   LCD_H
 
+extern spi_device_handle_t my_lcd_handle;
+
 void lcd_init(void);
 
 void lcd_write_cmd(const uint8_t cmd);

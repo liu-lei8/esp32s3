@@ -1,4 +1,5 @@
 set(scr_dirs
+            CAMERA
             RGBLCD_TOUCH
             RGBLCD
             QMA6100P
@@ -27,6 +28,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            CAMERA
             RGBLCD_TOUCH
             RGBLCD
             QMA6100P
@@ -55,6 +57,7 @@ set(include_dirs
             LED)
 
 set(requires
+            esp32-camera
             log
             esp_common
             esp_adc
