@@ -33,7 +33,7 @@
 #define QMA6100P_REG_ACC_VAL(lsb, msb)  ((int16_t)(((uint16_t)msb << 8) | ((uint16_t)lsb & 0xFC)) >> 2)
 
 #define M_G             9.80665f                /*标准重力加速度（m/s²）*/
-#define M_PI            3.141592653589793f      /*圆周率*/
+//#define M_PI            3.141592653589793f      /*圆周率,math.h文件已定义了*/
 #define RAD_TO_DEG      (180.0f / M_PI)         /*弧度转角度的转换因子*/
 
 typedef struct{

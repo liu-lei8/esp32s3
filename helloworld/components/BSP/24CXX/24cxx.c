@@ -132,7 +132,7 @@ void at24cxx_write_serial(uint16_t addr, uint8_t* pbuf, uint16_t datalen)
     }
     else
     {
-        bufs[0].buf = addr % 256;
+        *bufs[0].buf = addr % 256;
         bufs[0].len = 1;
         bufs[1].buf = pbuf;
         bufs[1].len = (size_t)datalen;
@@ -157,7 +157,7 @@ void at24cxx_read_serial(uint16_t addr, uint8_t* pbuf, uint16_t datalen)
     }
     else
     {
-        bufs[0].buf = addr % 256;
+        *bufs[0].buf = addr % 256;
         bufs[0].len = 1;
         bufs[1].buf = pbuf;
         bufs[1].len = (size_t)datalen;

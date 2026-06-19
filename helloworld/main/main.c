@@ -1,19 +1,23 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "nvs_flash.h"
 #include "led.h"
 #include "iic.h"
 #include "spi.h"
 #include "xl9555.h"
 #include "lcd.h"
-#include "camera.h"
+#include "spi_sd.h"
+#include "nvs_flash.h"
 
 i2c_obj_t i2c0_master;
 
 void app_main(void)
 {
-    uint8_t t = 0;
     esp_err_t ret;
+    size_t total_KB;
+    size_t free_KB;
+
+    printf("SPI2_HOST = %d, SPI3_HOST = %d\n", SPI2_HOST, SPI3_HOST);
+
     ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
     {
@@ -26,30 +30,35 @@ void app_main(void)
     spi2_init();
     xl9555_init(i2c0_master);
     lcd_init();
-    ret = camera_init();
+    ret = sd_spi_init();        /*自动初始化spi总线*/
+
 
     lcd_show_string(30, 50, "ESP32-S3", RED, WHITE, 32, 1);
-    lcd_show_string(30, 90, "Camera Test", RED, WHITE, 24, 1);
+    lcd_show_string(30, 90, "SD FATFS TEST", RED ,WHITE, 24, 1);
     lcd_show_string(30, 120, "AUTHOR@LIU-LEI", RED, WHITE, 16, 1);
 
-    while (ret != ESP_OK)
+    while (ret)       /*检测不到SD卡*/
     {
-        lcd_show_string(30, 140, "Camera Fail!", RED, WHITE, 16, 0);
+        lcd_show_string(30, 140, "SD Card Error!", RED, WHITE, 16, 0);
+        lcd_show_string(30, 160, "Please Check!", RED ,WHITE, 16, 0);
+        LED_TOGGLE();
         vTaskDelay(500);
     }
-    
-    lcd_clear(BLACK);
 
-    while(1)
+
+    lcd_show_string(30, 140, "SD Card OK!", RED ,WHITE, 16, 1);
+    lcd_show_string(30, 160, "Total:     MB", BLUE, WHITE, 16, 1);
+    lcd_show_string(30, 180, "Free :     MB", BLUE, WHITE, 16, 1);
+
+    sd_get_fatfs_usage(&total_KB, &free_KB);
+    printf("total_MB:%d, free_MB:%d\n", total_KB / 1024, free_KB / 1024);
+    lcd_show_num(30 + 48, 160, total_KB / 1024, 4, BLUE, WHITE, 16, 0);
+    lcd_show_num(30 + 48, 180, free_KB / 1024, 4, BLUE, WHITE, 16, 0);
+
+    while (1)
     {
-        camera_show(0, 0);
-
-        t++;
-        if (t % 20 == 0)
-        {
-            LED_TOGGLE();
-            t = 0;
-        }
-        vTaskDelay(5);
+        LED_TOGGLE();
+        vTaskDelay(500);
     }
+
 }

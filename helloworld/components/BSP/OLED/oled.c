@@ -141,7 +141,7 @@ void oled_show_char(uint8_t x, uint8_t y, uint8_t chr, uint8_t size, uint8_t mod
         pfont = (uint8_t*)oled_asc2_2412[chr];
     }
 
-    for (uint8_t i = 0; i < size; i++)
+    for (uint8_t i = 0; i < csize; i++)
     {
         temp = pfont[i];
         for (uint8_t j = 0; j < 8; j++)

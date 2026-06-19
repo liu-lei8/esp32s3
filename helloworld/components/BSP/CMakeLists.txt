@@ -1,4 +1,5 @@
 set(scr_dirs
+            SDIO
             CAMERA
             RGBLCD_TOUCH
             RGBLCD
@@ -28,6 +29,7 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            SDIO
             CAMERA
             RGBLCD_TOUCH
             RGBLCD
@@ -57,6 +59,7 @@ set(include_dirs
             LED)
 
 set(requires
+            fatfs
             esp32-camera
             log
             esp_common

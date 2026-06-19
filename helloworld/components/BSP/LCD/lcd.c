@@ -5,7 +5,6 @@ spi_device_handle_t my_lcd_handle;
 
 void lcd_init(void)
 {
-    int cmd = 0;
     esp_err_t ret;
 
     lcd_self.dir = 0;
@@ -24,9 +23,9 @@ void lcd_init(void)
     spi_device_interface_config_t devcfg = {
         .clock_speed_hz = SPI_MASTER_FREQ_10M,
         .mode = 3,
-        .spics_io_num = -1,     /*片选线直接接地了*/
+        .spics_io_num = lcd_self.cs,     /*要和SD卡挂载到同一总线不能接地了*/
         .queue_size = 7,
-        .flags = SPI_DEVICE_HALFDUPLEX      /*半双工，只读不写*/
+        .flags = SPI_DEVICE_HALFDUPLEX      /*半双工，只写不读*/
     };
     ret = spi_bus_add_device(SPI2_HOST, &devcfg, &my_lcd_handle);
     ESP_ERROR_CHECK(ret);
@@ -287,12 +286,10 @@ void lcd_show_char(uint16_t x, uint16_t y, uint8_t chr, uint16_t fc, uint16_t bc
     uint8_t temp0;
     uint8_t x1  = 0, y1 = 0;
     uint8_t y0 = y1;
-    uint16_t pixelCount;
 
     sizex = sizey / 2;
     uint16_t buf[sizex][sizey];
     size = ((sizey / 8) + ((sizey % 8) ? 1 : 0)) * sizex;
-    pixelCount = sizex * sizey;
 
     chr = chr - ' ';
     if (sizey == 12)
@@ -608,7 +605,6 @@ void lcd_show_picture0(uint8_t picture, uint16_t fc, uint16_t bc)
 void lcd_show_num(uint16_t x, uint16_t y, uint32_t data, uint16_t bit, uint16_t fc, uint16_t bc, uint8_t sizey, uint8_t mode)
 {
     uint8_t buf[9];             /*用于存储十进制中的位数值，buf[0]存储十进制最低位*/
-    uint32_t p = 0;
     uint8_t real_bit = 1;           /*用于判断传入数据data的十进制的实际位数,当传入数据为0时，默认实际位数为1*/
 
     /*将数据data的个十百千位一直到第亿位的值存放到buf*/

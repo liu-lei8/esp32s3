@@ -11,7 +11,7 @@ static esp_err_t qma6100p_reg_write_byte(uint8_t reg, uint8_t data)
     return iic_transfer(&qma6100p_i2c_master, QMA6100P_ADDR, 2, bufs, IIC_FLAG_STOP);
 }
 
-static esp_err_t qma6100p_reg_read(const uint8_t reg, uint8_t* data, const size_t len)
+static esp_err_t qma6100p_reg_read(uint8_t reg, uint8_t* data, const size_t len)
 {
     i2c_buf_t bufs[2] = {
         {.buf = &reg, .len = 1},
