@@ -1,5 +1,7 @@
 #include "camera.h"
 
+camera_fb_t* fb = NULL;
+
 /*摄像头配置*/
 static camera_config_t camera_cfg = {
     /*引脚配置*/
@@ -27,7 +29,7 @@ static camera_config_t camera_cfg = {
     .ledc_channel = LEDC_CHANNEL_0,
 
     /*图像输出模式*/
-    .pixel_format = PIXFORMAT_RGB565,
+    .pixel_format = PIXFORMAT_JPEG,
 
     /*图像输出大小*/
     .frame_size = FRAMESIZE_240X240,    
@@ -83,15 +85,21 @@ esp_err_t camera_init(void)
     return err;
 }
 
-void camera_show(uint16_t x0, uint16_t y0)
+void camera_show(uint16_t x0, uint16_t y0, uint8_t* data)
 {
-    camera_fb_t* fb = NULL;
     spi_transaction_t trans;
     uint8_t* line_buf;
 
     memset(&trans, 0, sizeof(trans));       /*将发送和接收缓冲区清空*/
 
-    fb = esp_camera_fb_get();
+    if (data)
+    {
+        line_buf = data;
+    }
+    else
+    {
+        return;
+    }
 
     lcd_address_set(x0, LCD_W - 1, y0, 240 - 1);      /*240 * 240分辨率*/
     LCD_WR(1);      /*准备写数据*/
@@ -100,12 +108,10 @@ void camera_show(uint16_t x0, uint16_t y0)
     /*逐行处理，对于每一行y*/
     for (uint8_t y = 0; y < 240; y++)
     {
-        line_buf = fb->buf + y * 240 * 2;   /*fb->buf的第0个字节是16位颜色的高字节*/
+        line_buf = data + y * 240 * 2;   /*fb->buf的第0个字节是16位颜色的高字节*/
 
         trans = (spi_transaction_t){.tx_buffer = line_buf, .length = LCD_W * 2 * 8};
 
         spi_device_polling_transmit(my_lcd_handle, &trans); /*发送一行数据*/
     }
-
-    esp_camera_fb_return(fb);
 }

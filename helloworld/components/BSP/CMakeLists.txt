@@ -59,6 +59,8 @@ set(include_dirs
             LED)
 
 set(requires
+            JPEG_DECODE
+            MYFATFS
             fatfs
             esp32-camera
             log

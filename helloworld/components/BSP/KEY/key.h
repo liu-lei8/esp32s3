@@ -10,6 +10,11 @@
 #define BOOT_PRES       1
 
 void key_init(void);
+/**
+ * @brief ESP32S3开发板自带的key0，对其进行按键扫描
+ * @param mode:0不支持连续按键，1支持连续按键
+ * @return 0按键未按下，1按键按下
+ */
 uint8_t key_scan(uint8_t mode);
 
 #endif

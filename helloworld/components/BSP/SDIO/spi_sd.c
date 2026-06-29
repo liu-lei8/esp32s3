@@ -4,6 +4,11 @@ spi_device_handle_t my_sd_handle;
 static const char *TAG = "sd_spi";
 const char mount_point[] = MOUNT_POINT;
 sdmmc_card_t* card;
+SemaphoreHandle_t BinarySemaphore;      /*二值信号量句柄*/
+uint8_t sd_check_en = 0;                /*SD卡是否挂载，1:挂载，0:未挂载*/
+TaskHandle_t task3_handler;              /*task3任务句柄*/
+
+extern camera_fb_t* fb;
 
 esp_err_t sd_spi_init(void)
 {
@@ -55,7 +60,7 @@ esp_err_t sd_spi_init(void)
         .host_id = host.slot,
     };
 
-    /*挂载文件系统*/
+    /*挂载文件系统，相当于一个盘符"0:",内部自动给FATFS文件系统工作区分配了内存*/
     ret = esp_vfs_fat_sdspi_mount(mount_point, &host, &slot_cfg, &mount_cfg, &card);
 
     if (ret != ESP_OK)
@@ -134,3 +139,77 @@ void sd_get_fatfs_usage(size_t* out_total_bytes, size_t* out_free_bytes)
     }
 }
 
+uint16_t pic_get_tnum(char* path)
+{
+    uint8_t res;
+    uint16_t rval = 0;
+    FF_DIR tdir;                                    /*临时目录*/
+    FILINFO* tfileinfo;                             /*临时文件信息*/
+    tfileinfo = (FILINFO*)malloc(sizeof(FILINFO));  /*申请内存*/
+    res = f_opendir(&tdir, (const TCHAR*)path);     /*打开目录*/
+
+    if (res == FR_OK && tfileinfo)
+    {
+        while (1)                               /*查询总的有效文件数*/
+        {
+            res = f_readdir(&tdir, tfileinfo);  /*读取目录下的一个文件*/
+            if (res != FR_OK || tfileinfo->fname[0] == 0) break;    /*错误、或者到末尾了*/
+
+            res = exfuns_file_type(tfileinfo->fname);
+            if ((res & 0xF0) == 0x50)             /*是目标图片文件，数量加一*/
+            {
+                rval++;
+            }
+        }
+    }
+
+    free(tfileinfo);
+    return rval;
+}
+
+void task3(void* pvParameters)
+{
+    char file_name[30];
+    FIL* fftemp;
+    FRESULT res = 0;
+    size_t writelen = 0;
+    uint32_t picture_number;
+
+    /*这里可以不用手动给FATFS分配内存，因为esp_vfs_fat_sdspi_mount该函数挂载盘符的时候底层自动分配了。只有当使用f_mount(&my_fs, "0:", 1)这个函数时才需要手动分配*/
+    ESP_ERROR_CHECK(exfuns_init());     /*FATFS文件系统工作区分配内存*/
+    picture_number = pic_get_tnum("0:/PICTURE");
+    picture_number += 1;
+
+
+    while (1)
+    {
+        xSemaphoreTake(BinarySemaphore, portMAX_DELAY);
+
+        /*SD卡挂载了才能拍照*/
+        if (sd_check_en == 1)
+        {
+            sprintf(file_name, "0:/PICTURE/img%ld.jpg", picture_number);
+            fftemp = (FIL*)malloc(sizeof(FIL));
+
+            res = f_open(fftemp, file_name, FA_WRITE | FA_CREATE_NEW);    /*创建并打开文件*/
+            if (res != FR_OK)
+            {
+                ESP_LOGE(TAG, "img open err");
+            }
+
+            f_write(fftemp, fb->buf, fb->len, &writelen);   /*写入jpg格式的图片数据*/
+            if (writelen != fb->len)
+            {
+                ESP_LOGE(TAG, "img write err");
+            }
+            else
+            {
+                ESP_LOGI(TAG, "write buff len %d bytes", writelen);
+                picture_number++;
+            }
+
+            f_close(fftemp);
+            free(fftemp);
+        }
+    }
+}

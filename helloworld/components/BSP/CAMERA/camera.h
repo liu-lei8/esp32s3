@@ -6,6 +6,7 @@
 #include "esp_camera.h"
 #include "lcd.h"
 
+
 /*引脚配置*/
 #define CAM_PIN_PWDN    GPIO_NUM_NC
 #define CAM_PIN_RESET   GPIO_NUM_NC
@@ -32,9 +33,12 @@
                                 xl9555_pin_write(OV_RESET_IO, 0);   \
                         }while(0)
 
+extern camera_fb_t* fb;
+
 esp_err_t camera_init(void);
 /**
  * @brief 将摄像头模块的数据显示到spilcd上，像素240 * 240
  * @param x0y0: 起始坐标
+ * @param data: RGB565像素数据
  */
-void camera_show(uint16_t x0, uint16_t y0);
+void camera_show(uint16_t x0, uint16_t y0, uint8_t* data);
