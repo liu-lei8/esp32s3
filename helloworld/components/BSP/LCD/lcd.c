@@ -10,6 +10,8 @@ void lcd_init(void)
     lcd_self.dir = 0;
     lcd_self.cs = LCD_NUM_CS;
     lcd_self.wr = LCD_NUM_WR;
+    lcd_self.width = LCD_W;
+    lcd_self.height = LCD_H;
 
     gpio_config_t wr_gpio_cfg = {
         .intr_type = GPIO_INTR_DISABLE,

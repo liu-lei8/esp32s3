@@ -59,7 +59,7 @@ set(include_dirs
             LED)
 
 set(requires
-            JPEG_DECODE
+            CHINESE_LIBRARY
             MYFATFS
             fatfs
             esp32-camera
