@@ -156,9 +156,11 @@ uint16_t pic_get_tnum(char* path)
             if (res != FR_OK || tfileinfo->fname[0] == 0) break;    /*错误、或者到末尾了*/
 
             res = exfuns_file_type(tfileinfo->fname);
-            if ((res & 0xF0) == 0x50)             /*是目标图片文件，数量加一*/
+
+            /* 取低四位,看看是不是图片文件,文件夹只能包含图片文件和.db类型的文件才能这样判断*/
+            if ((res & 0x0F) != 0x00)
             {
-                rval++;
+                rval++;                         /* 有效文件数增加1 */
             }
         }
     }
@@ -213,3 +215,75 @@ void task3(void* pvParameters)
         }
     }
 }
+
+/**
+ * @brief 将簇号转换为扇区号
+ * @param fs:文件系统对象
+ * @param clst:要转换的簇号
+ * @return 0,失败；其他：返回磁盘0:的扇区号
+ */
+static LBA_t atk_clst2sect(FATFS* fs, DWORD clst)
+{
+    /*LBA:logic block address,FATFS系统中需要用统一的逻辑地址来处理磁盘上每一个扇区*/
+    clst -= 2;
+
+    if (clst >= fs->n_fatent - 2) return 0;
+
+    return fs->database + (LBA_t)fs->csize * clst;  /*返回的扇区号*/
+}
+
+FRESULT atk_dir_sdi(FF_DIR* dp, DWORD ofs)
+{
+    DWORD clst;
+    FATFS* fs = dp->obj.fs;
+
+    /*检查 ofs 是否超出合法上限：
+     *exFAT 系统最多支持 0x10000000 条目录项（约 2.68 亿条）。
+     *其他 FAT 类型最多 0x200000 条（约 200 万条）。
+     *同时检查 ofs % 32，必须 32 字节对齐
+     *一条 FAT 目录项固定为 32 字节，所以 ofs 必须是 32 的整数倍。*/
+    if (ofs >= (DWORD)((FF_FS_EXFAT && fs->fs_type == FS_EXFAT) ? 0x10000000 : 0x200000) || ofs % 32)
+    {
+        return FR_INT_ERR;
+    }
+
+    dp->dptr = ofs;         /*设置当前偏移的字节数*/
+    clst = dp->obj.sclust;  /*表的起始簇，若是根目录值为0，对于子目录，它就是目录数据区的第一个簇*/
+
+    /*如果是根目录，并且是FAT32或EXFAT系统，那就找到真正的起始簇*/
+    if (clst == 0 && fs->fs_type >= FS_FAT32)
+    {
+        /*由于FAT32和EXFAT的根目录在簇链中，FATFS用fs->dirbase保存起始簇号*/
+        clst = fs->dirbase;
+
+        if (FF_FS_EXFAT) dp->obj.stat = 0;  /*EXFAT额外清一下状态标记，确保簇链遍历正确*/
+    }
+
+    /*经过以上操作，clst还是为0，说明是FAT16或FAT12的根目录*/
+    if (clst == 0)
+    {
+        /*索引（ofs/32）是否超过根目录所支持的条目数，超过则报错*/
+        if (ofs / 32 >= fs->n_rootdir) return FR_INT_ERR;
+        dp->sect = fs->dirbase;     /*设置根目录的起始扇区*/
+    }
+    else    /*是子目录或者FAT32或EXFAT的根目录*/
+    {
+        dp->sect = atk_clst2sect(fs, clst);     /*将对应的簇转换为该簇的起始扇区*/
+    }
+
+    dp->clust = clst;   /*保存当前簇，用来跟踪簇链*/
+
+    /**FAT文件系统把磁盘分成了保留区、文件分配区、根目录区、数据区
+     * FAT16的根目录区是独立的，而其他系统的根目录区在数据区里
+     * 0号扇区存放的是引导程序
+     * 而这里的dp->sect指的是数据区的起始扇区，所以一定不可能为0
+     */
+    if (dp->sect == 0) return FR_INT_ERR;
+
+    dp->sect += ofs / fs->ssize;            /*找到偏移的扇区，也就是目标目录项所在的扇区*/
+    dp->dir = fs->win + (ofs % fs->ssize);  /*将找到的扇区放到工作区win里，再加上扇区内偏移的字节就找到该目录项了*/
+
+    return FR_OK;
+}
+
+

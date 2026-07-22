@@ -36,6 +36,7 @@ void sd_get_fatfs_usage(size_t* out_total_bytes, size_t* out_free_bytes);
 
 /**
  * @brief 获取path路径下的目标图片文件的数量
+ *  @note 文件夹只能包含图片文件和.db类型的文件,才能得出图片文件的数量
  * @param path 路径信息
  * @return 返回图片文件的数量
  */
@@ -46,3 +47,13 @@ uint16_t pic_get_tnum(char* path);
  * @param pvParameters: 未用到该参数
  */
 void task3(void* pvParameters);
+
+/**
+ * @brief 在指定目录里进行偏移找到对应的目录项
+ *  @note 该函数修改了底层的dp->dptr(数据区起始偏移的字节量)，dp->sect(所在扇区)，
+ *                         dp->dir(指向某个目录项的开头)
+ * @param dp：指向目录对象的指针
+ * @param ofs：目录表的偏移量，必须是32字节的倍数
+ * @return FR_OK(0):成功，其他：失败。
+ */
+FRESULT atk_dir_sdi(FF_DIR* dp, DWORD ofs);

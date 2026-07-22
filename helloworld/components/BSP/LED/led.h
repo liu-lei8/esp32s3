@@ -13,7 +13,7 @@ enum GPIO_OUTPUT_STATE{
 #define LED(x) do{x ? \
                     gpio_set_level(LED_GPIO_PIN, PIN_SET) :\
                     gpio_set_level(LED_GPIO_PIN, PIN_RESET);\
-                 }while(0)
+                 }while(0)  /*LED(0)亮*/
 
 #define LED_TOGGLE() do{gpio_set_level(LED_GPIO_PIN, !gpio_get_level(LED_GPIO_PIN));\
                         }while(0)

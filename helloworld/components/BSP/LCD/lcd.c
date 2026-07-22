@@ -228,7 +228,7 @@ void lcd_address_set(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2)
     }
 }
 
-void lcd_fill(uint16_t xstart, uint16_t xend, uint16_t ystart, uint16_t yend, uint16_t color)
+void lcd_fill(uint16_t xstart, uint16_t ystart, uint16_t xend, uint16_t yend, uint16_t color)
 {
     esp_err_t ret;
     spi_transaction_t t;
@@ -266,11 +266,11 @@ void lcd_clear(uint16_t color)
 {
     if (USE_HORIZONTAL == 0 || USE_HORIZONTAL == 1)
     {
-        lcd_fill(0, 239, 0, 279, color);    /*竖屏*/
+        lcd_fill(0, 0, 239, 279, color);    /*竖屏*/
     }
     else
     {
-        lcd_fill(0, 279, 0, 239, color);
+        lcd_fill(0, 0, 279, 239, color);
     }
 }
 
@@ -278,6 +278,18 @@ void lcd_draw_poiont(uint16_t x, uint16_t y, uint16_t color)
 {
     lcd_address_set(x, x, y, y);
     lcd_write_data16(color);
+}
+
+void lcd_draw_hline(uint16_t x, uint16_t y, uint16_t len, uint16_t color)
+{
+    /*确保坐标在LCD范围内*/
+    if (len == 0 || x > lcd_self.width || y > lcd_self.height) return;
+
+    uint16_t ex = fmin(lcd_self.width - 1, x + len - 1);
+    uint16_t ey = y;
+
+    /*填充颜色区域*/
+    lcd_fill(x, y, ex, ey, color);
 }
 
 void lcd_show_char(uint16_t x, uint16_t y, uint8_t chr, uint16_t fc, uint16_t bc, uint8_t sizey, uint8_t mode)
@@ -633,7 +645,7 @@ void lcd_show_num(uint16_t x, uint16_t y, uint32_t data, uint16_t bit, uint16_t 
     /*如果要输入的数据data的最高bit为5位，但是实际位数real_bit为3位，那么填充最后2位为背景色*/
     if (real_bit < bit)
     {
-        lcd_fill(x, x + (sizey / 2) * (bit - real_bit) - 1, y, y + sizey - 1, bc);
+        lcd_fill(x, y, x + (sizey / 2) * (bit - real_bit) - 1, y + sizey - 1, bc);
     }
 
 }
