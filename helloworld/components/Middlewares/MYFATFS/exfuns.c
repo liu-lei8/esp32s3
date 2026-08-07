@@ -45,7 +45,7 @@ uint8_t exfuns_char_upper(uint8_t c)
 {
     if (c < 'A')return c;   /*数字保持不变*/
 
-    if (c > 'a')
+    if (c >= 'a')
     {
         return c - 0x20;    /*转换为大写字母*/
     }
@@ -55,7 +55,7 @@ uint8_t exfuns_char_upper(uint8_t c)
     }
 }
 
-uint8_t exfuns_file_type(char* fname)
+uint8_t exfuns_file_type0(char* fname)
 {
     uint8_t i = 0, j;
     char tbuf[5];
@@ -89,6 +89,7 @@ uint8_t exfuns_file_type(char* fname)
         tbuf[i] = *suffix++;
         tbuf[i] = exfuns_char_upper(tbuf[i]);   /*转换为大写字母*/
     }
+    tbuf[4] = '\0';
     
     for (i = 0; i < FILE_MAX_TYPE_NUM; i++)
     {
@@ -104,6 +105,35 @@ uint8_t exfuns_file_type(char* fname)
     
     return 0xFF;        /*没找到*/
 
+}
+
+uint8_t exfuns_file_type(char* fname)
+{
+    char *dot = strrchr(fname, '.');
+    if (dot == NULL) {
+        printf("No dot in: %s\n", fname);
+        return 0xFF;
+    }
+    dot++;
+    char ext[8] = {0};
+    int i = 0;
+    while (*dot && i < 7) {
+        ext[i++] = exfuns_char_upper(*dot);
+        dot++;
+    }
+    ext[i] = '\0';
+    // printf("Extracted ext: '%s'\n", ext);  // 关键打印
+
+    for (int i = 0; i < FILE_MAX_TYPE_NUM; i++) {
+        for (int j = 0; j < FILE_MAX_SUBT_NUM; j++) {
+            if (FILE_TYPE_TBL[i][j][0] == ' ') break;
+            // printf("Comparing with '%s'\n", FILE_TYPE_TBL[i][j]); // 打印对比过程
+            if (strcmp(ext, FILE_TYPE_TBL[i][j]) == 0) {
+                return (i << 4) | j;
+            }
+        }
+    }
+    return 0xFF;
 }
 
 uint8_t exfuns_get_free(uint8_t* pdrv, uint32_t* total, uint32_t* free)

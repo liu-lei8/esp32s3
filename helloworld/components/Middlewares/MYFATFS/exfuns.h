@@ -40,8 +40,8 @@ uint8_t exfuns_init(void);
 uint8_t exfuns_char_upper(uint8_t c);
 
 /**
- * @brief 根据文件名获取文件的类型
- * @param fname:文件名
+ * @brief 根据文件名或路径获取文件的类型
+ * @param fname:文件名或者路径
  * @return  返回文件的类型值
  *   @arg   类型值高四位表示所属大类，低四位表示所属小类
  *   @arg   0xFF表示无法识别的文件类型编号

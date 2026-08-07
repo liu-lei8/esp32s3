@@ -22,7 +22,7 @@
 /*XL9555各个IO的功能*/
 #define AP_INT_IO        0x0001  /* AP3216C中断引脚P00 */
 #define QMA_INT_IO       0x0002  /* QMA6100P中断引脚P01 */
-#define SPK_EN_IO        0x0004  /*功放使能引脚P02 */
+#define SPK_EN_IO        0x0004  /* ES8311功放使能引脚P02 */
 #define BEEP_IO          0x0008  /*蜂鸣器控制引脚P03 */
 #define OV_PWDN_IO       0x0010  /*摄像头待机引脚P04 */
 #define OV_RESET_IO      0x0020  /*摄像头复位引脚P05 */
@@ -49,6 +49,13 @@
 
 void xl9555_init(i2c_obj_t self);
 esp_err_t xl9555_write_byte(uint8_t reg, uint8_t* data, size_t len);
+
+/**
+ * @brief 给xl9555对应引脚输出电平状态
+ * @param xl9555_pin:引脚号
+ * @param level:1拉高电平，0拉低电平
+ * @return 0成功；其它错误
+ */
 esp_err_t xl9555_pin_write(uint16_t xl9555_pin, bool level);
 esp_err_t xl9555_read_byte(uint8_t* data, size_t len);
 bool xl9555_pin_read(uint16_t xl9555_pin);

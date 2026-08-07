@@ -122,7 +122,7 @@ esp_err_t xl9555_pin_write(uint16_t xl9555_pin, bool level)
 
     if (level)
     {
-        ret |= xl9555_pin;
+        ret |= xl9555_pin;      /*对应位写1，高电平*/
     }
     else
     {

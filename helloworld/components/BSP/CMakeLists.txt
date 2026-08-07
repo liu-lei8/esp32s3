@@ -1,4 +1,6 @@
 set(scr_dirs
+            ES8311
+            I2S
             SDIO
             CAMERA
             RGBLCD_TOUCH
@@ -29,6 +31,8 @@ set(scr_dirs
             LED)
 
 set(include_dirs
+            ES8311
+            I2S
             SDIO
             CAMERA
             RGBLCD_TOUCH
@@ -59,6 +63,7 @@ set(include_dirs
             LED)
 
 set(requires
+            esp_codec_dev
             CHINESE_LIBRARY
             MYFATFS
             fatfs
