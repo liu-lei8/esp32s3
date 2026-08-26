@@ -40,7 +40,7 @@ uint8_t es8311_init(i2c_obj_t self)
 
     /*寄存器以及引脚配置*/
     es8311_codec_cfg_t es8311_cfg = {
-        .codec_mode = ESP_CODEC_DEV_WORK_MODE_DAC,  /*开启DAC关闭ADC*/
+        .codec_mode = ESP_CODEC_DEV_WORK_MODE_BOTH,  /*开启DAC和ADC*/
         .ctrl_if = out_ctrl_if,
         .gpio_if = gpio_if,
         .pa_pin = -1,               /*这里不使用，因为用xl9555来控制喇叭*/
@@ -53,7 +53,7 @@ uint8_t es8311_init(i2c_obj_t self)
     esp_codec_dev_cfg_t dev_cfg = {
         .codec_if = out_codec_if,   /*es8311的配置接口*/
         .data_if = data_if,         /*i2s数据接口*/
-        .dev_type = ESP_CODEC_DEV_TYPE_OUT,     /*仅支持播放*/
+        .dev_type = ESP_CODEC_DEV_TYPE_IN_OUT,     /*支持播放和录音*/
     };
     esp_codec_dev_handle_t codec_dev = esp_codec_dev_new(&dev_cfg);
     my_codec_dev = codec_dev;
@@ -90,7 +90,7 @@ esp_err_t es8311_update_fs(int samplerate, int bits)
 
     // 1. 先禁用数据接口（相当于暂停 I2S）
     // if (es8311_data_if->enable) {
-    //     es8311_data_if->enable(es8311_data_if, ESP_CODEC_DEV_TYPE_OUT, false);
+    //     es8311_data_if->enable(es8311_data_if, ESP_CODEC_DEV_TYPE_IN_OUT, false);
     // }
 
     // 2. 配置 I2S 格式（关键：同时设置位宽和 mclk_multiple）
@@ -100,7 +100,7 @@ esp_err_t es8311_update_fs(int samplerate, int bits)
         .bits_per_sample = bits,
         .mclk_multiple = I2S_MCLK_MULTIPLE_24BIT,       /*只能被重新设置一次*/
     };
-    ret = es8311_data_if->set_fmt(es8311_data_if, ESP_CODEC_DEV_TYPE_OUT, &fs); /*内部会禁用I2S，所以前面不用禁用*/
+    ret = es8311_data_if->set_fmt(es8311_data_if, ESP_CODEC_DEV_TYPE_IN_OUT, &fs); /*内部会禁用I2S，所以前面不用禁用*/
     if (ret != 0) {
         ESP_LOGE("ES8311", "I2S set_fmt failed");
         return ESP_FAIL;
@@ -116,7 +116,7 @@ esp_err_t es8311_update_fs(int samplerate, int bits)
 
     // 4. 重新启用数据接口
     if (es8311_data_if->enable) {
-        es8311_data_if->enable(es8311_data_if, ESP_CODEC_DEV_TYPE_OUT, true);
+        es8311_data_if->enable(es8311_data_if, ESP_CODEC_DEV_TYPE_IN_OUT, true);
     }
 
     return ESP_OK;

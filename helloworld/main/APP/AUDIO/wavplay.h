@@ -16,7 +16,7 @@ typedef struct {
 }ChunkRIFF;                 /*RIFF块*/
 
 typedef struct{
-    uint32_t ChunkID;               /*chunk id;这里固定为“fmt”，即0X20746D66*/
+    uint32_t ChunkID;               /*chunk id;这里固定为“fmt ”，即0X20746D66*/
     uint32_t ChunkSize;             /*子集合大小（不包括ID和Size）；这里为：16*/
     uint16_t AudioFormat;           /*音频格式；0x01表示线性PCM；0x11表示IMA ADPCM*/
     uint16_t NumOfChannels;         /*通道数量；1表示单声道；2表示双声道*/

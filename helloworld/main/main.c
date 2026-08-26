@@ -9,6 +9,7 @@
 #include "audioplay.h"
 #include "my_es8311.h"
 #include "spi_sd.h"
+#include "recorder.h"
 
 i2c_obj_t i2c0_master;
 
@@ -73,15 +74,14 @@ void app_main(void)
     }
 
     text_show_string(30, 50, 200, 16, "正点原子ESP32-S3开发板", 16, 1, RED, WHITE);
-    text_show_string(30, 70, 200, 16, "音乐播放器实验", 16, 1, RED, WHITE);
+    text_show_string(30, 70, 200, 16, "WAV 录音机 实验", 16, 1, RED, WHITE);
     text_show_string(30, 90, 200, 16, "作者@柳磊", 16, 1, RED, WHITE);
-    text_show_string(30, 110, 200, 16, "KEY0:NEXT  KEY1:PREV", 16, 1, RED, WHITE);
-    text_show_string(30, 130, 200, 16, "KEY3:PAUSE/PLAY", 16, 1, RED, WHITE);
+
 
     vTaskDelay(500);
 
     while (1)
     {
-        audio_play();
+        wav_recorder();
     }
 }

@@ -114,7 +114,7 @@ void lcd_initialize(void);
 
 void lcd_address_set(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2);
 
-void lcd_fill(uint16_t xstart, uint16_t xend, uint16_t ystart, uint16_t yend, uint16_t color);
+void lcd_fill(uint16_t xstart, uint16_t ystart, uint16_t xend, uint16_t yend, uint16_t color);
 
 void lcd_clear(uint16_t color);
 
