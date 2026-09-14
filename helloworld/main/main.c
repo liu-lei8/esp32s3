@@ -9,10 +9,11 @@
 #include "audioplay.h"
 #include "my_es8311.h"
 #include "spi_sd.h"
-#include "recorder.h"
+#include "videoplay.h"
+#include "freertos/message_buffer.h"
 
 i2c_obj_t i2c0_master;
-
+MessageBufferHandle_t audio_mbox;       /* 消息缓冲区句柄 */
 void app_main(void)
 {
     esp_err_t ret;
@@ -74,14 +75,16 @@ void app_main(void)
     }
 
     text_show_string(30, 50, 200, 16, "正点原子ESP32-S3开发板", 16, 1, RED, WHITE);
-    text_show_string(30, 70, 200, 16, "WAV 录音机 实验", 16, 1, RED, WHITE);
+    text_show_string(30, 70, 200, 16, "视频播放器 实验", 16, 1, RED, WHITE);
     text_show_string(30, 90, 200, 16, "作者@柳磊", 16, 1, RED, WHITE);
+    text_show_string(30, 110, 200, 16, "KEY0:NEXT KEY1:PREV", 16, 1, RED, WHITE);
+    text_show_string(30, 130, 200, 16, "KEY2:FF   KEY3:REW", 16, 1, RED, WHITE);
 
 
     vTaskDelay(500);
 
-    while (1)
-    {
-        wav_recorder();
-    }
+    audio_mbox = xMessageBufferCreate(10 * 1024);
+
+    xTaskCreatePinnedToCore(audio_task, "audio", 4096, NULL, 20, NULL, 0);
+    xTaskCreatePinnedToCore(video_task, "video_task", 32768, NULL, 15, NULL, 1);
 }

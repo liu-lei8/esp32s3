@@ -3,6 +3,11 @@
 lcd_obj_t lcd_self;
 spi_device_handle_t my_lcd_handle;
 
+spi_transaction_t pending_trans[MAX_PENDING_TRANS];
+int pending_head = 0;   /* 已排队的事务总数 */
+int pending_tail = 0;   /* 已回收的事务总数 */
+
+
 void lcd_init(void)
 {
     esp_err_t ret;
@@ -23,10 +28,10 @@ void lcd_init(void)
     gpio_config(&wr_gpio_cfg);
 
     spi_device_interface_config_t devcfg = {
-        .clock_speed_hz = SPI_MASTER_FREQ_10M,
+        .clock_speed_hz = SPI_MASTER_FREQ_40M,
         .mode = 3,
-        .spics_io_num = lcd_self.cs,     /*要和SD卡挂载到同一总线不能接地了*/
-        .queue_size = 7,
+        .spics_io_num = lcd_self.cs,        /*要和SD卡挂载到同一总线不能接地了*/
+        .queue_size = 20,    /* 队列深度，需要传输的任务数 */
         .flags = SPI_DEVICE_HALFDUPLEX      /*半双工，只写不读*/
     };
     ret = spi_bus_add_device(SPI2_HOST, &devcfg, &my_lcd_handle);
@@ -50,7 +55,7 @@ void lcd_write_cmd(const uint8_t cmd)
     spi2_write_cmd(my_lcd_handle, cmd);
 }
 
-void lcd_write_data(uint16_t* data, int len)
+void lcd_write_data0(uint16_t* data, int len)
 {
     if (!gpio_get_level(LCD_NUM_WR))
     {
@@ -65,6 +70,96 @@ void lcd_write_data(uint16_t* data, int len)
     spi2_write_data(my_lcd_handle, temp, len * 2);
 }
 
+void lcd_write_data(uint16_t* data, int len)
+{
+    if (!gpio_get_level(LCD_NUM_WR))
+    {
+        LCD_WR(1);
+    }
+    uint8_t* temp = (uint8_t*)data;
+    for (uint16_t i = 0; i < len; i++)
+    {
+        data[i] = (data[i] >> 8) | (data[i] << 8);
+    }
+
+    // 分块传输，每块最多 16KB（8192 个 uint16）
+    const int MAX_CHUNK_PIXELS = 8192;   // 8192 * 2 = 16384 字节
+    int remaining = len;
+    uint8_t* p = temp;
+
+    while (remaining > 0)
+    {
+        int chunk_pixels = (remaining > MAX_CHUNK_PIXELS) ? MAX_CHUNK_PIXELS : remaining;
+        int chunk_bytes = chunk_pixels * 2;
+
+        spi_transaction_t t = {0};
+        t.tx_buffer = p;
+        t.length = chunk_bytes * 8;
+        esp_err_t ret = spi_device_polling_transmit(my_lcd_handle, &t);     /* 同步阻塞传输 */
+        ESP_ERROR_CHECK(ret);
+
+        p += chunk_bytes;
+        remaining -= chunk_pixels;
+    }
+}
+
+/**
+ * @brief 异步发送像素数据（内部自动字节交换 + 分块排队）
+ * @param data: RGB565 像素数组
+ * @param len : 像素个数
+ * @note  调用前需先 lcd_address_set() 设置显示窗口
+ */
+void lcd_write_data_async(uint16_t* data, int len)
+{
+    if (!gpio_get_level(LCD_NUM_WR)) {
+        LCD_WR(1);
+    }
+
+    /* 原地字节交换（LCD 需要大端 RGB565） */
+    for (int i = 0; i < len; i++) {
+        data[i] = (data[i] >> 8) | (data[i] << 8);
+    }
+
+    uint8_t* p = (uint8_t*)data;
+    const int MAX_CHUNK_PIXELS = 8192;   /* 每块 16KB，远小于硬件上限 32KB */
+    int remaining = len;
+
+    /* 240*160一帧的传输占spi 5个传输事务，因为每次传输8192个像素 */
+    while (remaining > 0) {
+        /* 队列满时回收旧结果，腾出槽位 */
+        while ((pending_head - pending_tail) >= MAX_PENDING_TRANS) {
+            spi_transaction_t* rtrans;
+            spi_device_get_trans_result(my_lcd_handle, &rtrans, portMAX_DELAY);
+            pending_tail++;
+        }
+
+        int chunk = (remaining > MAX_CHUNK_PIXELS) ? MAX_CHUNK_PIXELS : remaining;
+        int idx = pending_head % MAX_PENDING_TRANS;
+        spi_transaction_t* t = &pending_trans[idx];
+        memset(t, 0, sizeof(spi_transaction_t));
+        t->tx_buffer = p;
+        t->length = chunk * 2 * 8;
+
+        spi_device_queue_trans(my_lcd_handle, t, portMAX_DELAY);        /* 一个传输事务 */
+        pending_head++;
+
+        p += chunk * 2;
+        remaining -= chunk;
+    }
+}
+
+/**
+ * @brief 等待所有挂起的异步传输完成
+ */
+void lcd_wait_transfer_done(void)
+{
+    while (pending_head > pending_tail) {
+        spi_transaction_t* rtrans;
+        spi_device_get_trans_result(my_lcd_handle, &rtrans, portMAX_DELAY);
+        pending_tail++;
+    }
+}
+
 void lcd_write_data8(uint8_t data)
 {
     LCD_WR(1);
@@ -74,8 +169,9 @@ void lcd_write_data8(uint8_t data)
 void lcd_write_data16(uint16_t data)
 {
     uint8_t buf[2] = {0};
-    buf[0] = data >> 8;     /*已经对颜色值的高八位和第八位进行翻转了*/
+    buf[0] = data >> 8;     /*已经对颜色值的高八位和低八位进行翻转了*/
     buf[1] = data & 0xFF;
+
     LCD_WR(1);
     spi2_write_data(my_lcd_handle, buf, 2);
 }
@@ -649,3 +745,19 @@ void lcd_show_num(uint16_t x, uint16_t y, uint32_t data, uint16_t bit, uint16_t 
     }
 
 }
+
+void lcd_draw_bitmap(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t* color)
+{
+
+    uint16_t* pc = color;
+
+    uint32_t PixelCount = (x2 - x1 + 1) * (y2 - y1 + 1);
+
+    // lcd_wait_transfer_done();     /* 等待上一帧异步传输完成 */
+    lcd_address_set(x1, x2, y1, y2);
+
+    lcd_write_data(pc, PixelCount);
+    // lcd_write_data_async(pc, PixelCount);
+
+}
+

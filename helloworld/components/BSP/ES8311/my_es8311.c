@@ -71,6 +71,8 @@ uint8_t es8311_init(i2c_obj_t self)
 
 uint8_t es8311_write(uint8_t* data, int len)
 {
+    int aligned_len = len & ~3;     /* 向下取整到4的倍数 */
+    if (aligned_len == 0) return 1;
     return esp_codec_dev_write(my_codec_dev, data, len);
 }
 

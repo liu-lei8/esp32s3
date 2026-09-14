@@ -104,6 +104,9 @@ void lcd_write_cmd(const uint8_t cmd);
 ***********************************************************************/
 void lcd_write_data(uint16_t* data, int len);
 
+void lcd_write_data_async(uint16_t* data, int len);
+void lcd_wait_transfer_done(void);
+
 void lcd_write_data8(uint8_t data);
 
 void lcd_write_data16(uint16_t data);
@@ -167,3 +170,10 @@ void lcd_show_picture0(uint8_t picture, uint16_t fc, uint16_t bc);
  * @retval  无
  */
 void lcd_show_num(uint16_t x, uint16_t y, uint32_t data, uint16_t bit, uint16_t fc, uint16_t bc, uint8_t sizey, uint8_t mode);
+
+/**
+ * @brief 显示一帧画面
+ * @param x1y1,x2y2: 画面显示的xy起始和终止坐标
+ * @param color: 颜色缓冲区指针（传进来的颜色无需进行大小端转换，内部会转换）
+ */
+void lcd_draw_bitmap(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t* color);
