@@ -10,7 +10,7 @@ TaskHandle_t task3_handler;              /*task3任务句柄*/
 
 extern camera_fb_t* fb;
 
-esp_err_t sd_spi_init(void)
+esp_err_t sd_spi_mount_init(void)
 {
     esp_err_t ret = ESP_OK;
 
@@ -65,13 +65,54 @@ esp_err_t sd_spi_init(void)
 
     if (ret != ESP_OK)
     {
+        esp_vfs_fat_sdcard_unmount(mount_point, card);
         spi_bus_remove_device(my_sd_handle);    /*移除SPI总线上的SD卡*/
     }
 
     return ret;
 }
 
-esp_err_t sd_spi_init_test(void)
+esp_err_t sd_spi_init(void)
+{
+    esp_err_t ret = ESP_OK;
+
+    // 1. 配置并添加 SPI 设备（使用默认探测频率）
+    sdspi_device_config_t slot_cfg = SDSPI_DEVICE_CONFIG_DEFAULT();
+    slot_cfg.gpio_cs = SD_NUM_CS;
+    slot_cfg.host_id = SPI2_HOST;
+
+    sdspi_dev_handle_t spi_handle = 0;
+    ret = sdspi_host_init_device(&slot_cfg, &spi_handle);   /* 配置引脚，然后SPI总线上挂在SD卡设备 */
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "sdspi_host_init_device failed: %s", esp_err_to_name(ret));
+        return ret;
+    }
+
+    // 2. 配置 sdmmc_host_t，将 slot 设为由 sdspi_host_init_device 返回的句柄
+    sdmmc_host_t host = SDSPI_HOST_DEFAULT();
+    host.slot = spi_handle;                     /* 传句柄 */
+    host.max_freq_khz = SDMMC_FREQ_DEFAULT;     // 20 MHz,这里40M不支持，可能是卡本身或者其他原因
+
+    // 3. 初始化卡，获取 sdmmc_card_t 指针
+    card = (sdmmc_card_t *)malloc(sizeof(sdmmc_card_t));
+    if (card == NULL) {
+        ESP_LOGE(TAG, "Failed to allocate card structure");
+        return ESP_ERR_NO_MEM;
+    }
+
+    ret = sdmmc_card_init(&host, card);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "sdmmc_card_init failed: %s", esp_err_to_name(ret));
+        free(card);
+        card = NULL;
+        return ret;
+    }
+
+    ESP_LOGI(TAG, "SD card initialized successfully");
+    return ESP_OK;
+}
+
+esp_err_t sd_spi_mount_init_test(void)
 {
     esp_err_t ret = ESP_OK;
 

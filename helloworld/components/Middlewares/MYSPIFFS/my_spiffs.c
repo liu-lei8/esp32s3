@@ -9,7 +9,7 @@ esp_err_t spiffs_init(char* partition_label, char* mount_point, size_t max_files
 
     /*配置spiffs文件系统参数*/
     esp_vfs_spiffs_conf_t spiffs_cfg = {
-        .base_path = mount_point,               /*磁盘路径，比如"0:","1:"*/
+        .base_path = mount_point,               /*磁盘路径，比如"/0:","/1:"*/
         .partition_label = partition_label,     /*分区表的分区名称*/
         .max_files = max_files,                 /*最大可同时打开的文件数*/
         .format_if_mount_failed = true          /*挂载失败则重新格式化文件系统*/

@@ -1,23 +1,20 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "nvs_flash.h"
+#include "led.h"
 #include "iic.h"
 #include "spi.h"
 #include "xl9555.h"
 #include "lcd.h"
-#include "myi2s.h"
-#include "audioplay.h"
-#include "my_es8311.h"
+#include "tud_flash.h"
+#include "tud_sd.h"
 #include "spi_sd.h"
-#include "videoplay.h"
-#include "freertos/message_buffer.h"
 
 i2c_obj_t i2c0_master;
-MessageBufferHandle_t audio_mbox;       /* 消息缓冲区句柄 */
+
 void app_main(void)
 {
     esp_err_t ret;
-
     ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
     {
@@ -31,60 +28,16 @@ void app_main(void)
     xl9555_init(i2c0_master);
     lcd_init();
 
-    /* 先单独初始化 I2S，确保成功 */
-    while (myi2s_init()) {
-        lcd_show_string(30, 110, "I2S Init Error!", RED, WHITE, 16, 0);
-        vTaskDelay(200);
-        lcd_fill(30, 110, 240, 126, WHITE);
-        vTaskDelay(200);
-    }
+    ESP_ERROR_CHECK(sd_spi_init());
+    tud_usb_sd();
 
-    /* 再单独初始化 ES8311 */
-    while (es8311_init(i2c0_master)) {
-        lcd_show_string(30, 130, "ES8311 Init Error!", RED, WHITE, 16, 0);
-        vTaskDelay(200);
-        lcd_fill(30, 130, 240, 146, WHITE);
-        vTaskDelay(200);
-    }
+    lcd_show_string(30, 50, "ESP32-S3", RED, WHITE, 16, 1);
+    lcd_show_string(30, 70, "USB SD TEST", RED, WHITE, 16, 1);
+    lcd_show_string(30, 90, "AUTHOR@LIU-LEI", RED, WHITE, 16, 1);
 
-    while (sd_spi_init())
+    while (1)
     {
-        lcd_show_string(30, 110, "SD Card Init Error!", RED, WHITE, 16, 0);
-        vTaskDelay(200);
-        lcd_show_string(30, 110, "Please Check!", RED, WHITE, 16, 0);
-        vTaskDelay(200);
+        LED_TOGGLE();
+        vTaskDelay(500);
     }
-    ret = exfuns_init();
-    
-    while (fonts_init())        /*检查字库*/
-    {
-        lcd_clear(WHITE);
-        lcd_show_string(30, 30, "ESP32-S3", RED, WHITE, 16, 1);
-
-        ret = fonts_update_font(30, 50, 16, (uint8_t*)"0:", RED, WHITE);
-
-        while (ret)
-        {
-            lcd_show_string(30, 50, "Font Update Fail!", RED, WHITE, 16, 0);
-            vTaskDelay(1000);
-        }
-
-        lcd_show_string(30, 50, "Font Update Success!", RED, WHITE, 16, 0);
-        vTaskDelay(1000);
-        lcd_clear(WHITE);
-    }
-
-    text_show_string(30, 50, 200, 16, "正点原子ESP32-S3开发板", 16, 1, RED, WHITE);
-    text_show_string(30, 70, 200, 16, "视频播放器 实验", 16, 1, RED, WHITE);
-    text_show_string(30, 90, 200, 16, "作者@柳磊", 16, 1, RED, WHITE);
-    text_show_string(30, 110, 200, 16, "KEY0:NEXT KEY1:PREV", 16, 1, RED, WHITE);
-    text_show_string(30, 130, 200, 16, "KEY2:FF   KEY3:REW", 16, 1, RED, WHITE);
-
-
-    vTaskDelay(500);
-
-    audio_mbox = xMessageBufferCreate(10 * 1024);
-
-    xTaskCreatePinnedToCore(audio_task, "audio", 4096, NULL, 20, NULL, 0);
-    xTaskCreatePinnedToCore(video_task, "video_task", 32768, NULL, 15, NULL, 1);
 }

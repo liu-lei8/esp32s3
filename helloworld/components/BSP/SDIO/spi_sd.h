@@ -22,11 +22,12 @@ extern uint8_t sd_check_en;
 extern TaskHandle_t task3_handler;
 extern sdmmc_card_t* card;
 
-
-/*该初始化直接手动配置的参数*/
+/* 只初始化SD卡不挂载，在SD卡模拟U盘中用到，因为挂载会和msc配置冲突（msc内部会自动挂载） */
 esp_err_t sd_spi_init(void);
+/*该初始化直接手动配置的参数,初始化SD卡并挂载FATFS文件系统 */
+esp_err_t sd_spi_mount_init(void);
 /*该初始化使用的宏配置参数*/
-esp_err_t sd_spi_init_test(void);
+esp_err_t sd_spi_mount_init_test(void);
 /**
  * @brief 获取MicroSD卡的总内存和空闲内存的KB数
  * @param out_total_bytes:要获取的总内存
