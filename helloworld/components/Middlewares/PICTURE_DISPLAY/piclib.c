@@ -18,7 +18,7 @@ static void piclib_multi_color(uint16_t x, uint16_t y, uint16_t width, uint16_t*
 
 void piclib_init(void)
 {
-    pic_phy.draw_point = lcd_draw_poiont;       /*画点函数实现，仅GIF需要 */
+    pic_phy.draw_point = lcd_draw_point;       /*画点函数实现，仅GIF需要 */
     pic_phy.fill = lcd_fill;                    /*填充函数实现，仅GIF需要 */
     pic_phy.draw_hline = lcd_draw_hline;        /*画线函数实现，仅GIF需要 */
     pic_phy.multicolor = piclib_multi_color;    /*颜色填充函数实现，JPEG,BMP,PNG需要 */

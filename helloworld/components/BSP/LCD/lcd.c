@@ -370,10 +370,48 @@ void lcd_clear(uint16_t color)
     }
 }
 
-void lcd_draw_poiont(uint16_t x, uint16_t y, uint16_t color)
+void lcd_draw_point(uint16_t x, uint16_t y, uint16_t color)
 {
     lcd_address_set(x, x, y, y);
     lcd_write_data16(color);
+}
+
+void lcd_draw_line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color)
+{
+    /* 使用Bresenham算法，即中点判断法 */
+    uint16_t dx = (x2 > x1) ? (x2 - x1) : (x1 - x2);
+    uint16_t dy = (y2 > y1) ? (y2 - y1) : (y1 - y2);
+    int16_t sx = (x2 > x1) ? 1 : -1;
+    int16_t sy = (y2 > y1) ? 1 : -1;
+    int16_t err = dx - dy;
+    int16_t e2;
+    uint32_t count = 0;
+
+    while (1)
+    {
+        lcd_draw_point(x1, y1, color);
+
+        /* 每画 16 个点让出一次 CPU，喂一下看门狗 */
+        if (++count % 16 == 0)
+        {
+            vTaskDelay(pdMS_TO_TICKS(1));   /* 1 tick，通常 1ms，几乎不影响视觉 */
+        }
+
+        if (x1 == x2 && y1 == y2) break;    /* 画线结束 */
+
+        e2 = 2 * err;
+        if (e2 > -dy)
+        {
+            x1 += sx;
+            err -= dy;
+        }
+        if (e2 < dx)
+        {
+            y1 += sy;
+            err += dx;
+        }
+    }
+    
 }
 
 void lcd_draw_hline(uint16_t x, uint16_t y, uint16_t len, uint16_t color)
@@ -463,7 +501,7 @@ void lcd_show_char(uint16_t x, uint16_t y, uint8_t chr, uint16_t fc, uint16_t bc
             {
                 if (buf[j][i] == fc)
                 {
-                    lcd_draw_poiont(x + j, y + i, buf[j][i]);
+                    lcd_draw_point(x + j, y + i, buf[j][i]);
                 }
             }
         }
@@ -575,7 +613,7 @@ void lcd_show_chinese(uint16_t x, uint16_t y, const char* chinese, uint16_t fc, 
             {
                 if (buf[j][i] == fc)
                 {
-                    lcd_draw_poiont(x + j, y + i, fc);
+                    lcd_draw_point(x + j, y + i, fc);
                 }
             }
         }
@@ -660,7 +698,7 @@ void lcd_show_picture(uint8_t picture, uint16_t fc, uint16_t bc, uint8_t mode)
             {
                 if (buf[j][i] == fc)
                 {
-                    lcd_draw_poiont(j, i, fc);
+                    lcd_draw_point(j, i, fc);
                 }
             }
         }

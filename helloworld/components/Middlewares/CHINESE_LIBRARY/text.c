@@ -123,7 +123,7 @@ void text_show_font(uint16_t x, uint16_t y, uint8_t* font, uint8_t size, uint8_t
             {
                 if (buf[j][i] == fc)
                 {
-                    lcd_draw_poiont(x + j, y + i, fc);
+                    lcd_draw_point(x + j, y + i, fc);
                 }
             }
         }

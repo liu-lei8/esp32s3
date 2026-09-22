@@ -121,7 +121,9 @@ void lcd_fill(uint16_t xstart, uint16_t ystart, uint16_t xend, uint16_t yend, ui
 
 void lcd_clear(uint16_t color);
 
-void lcd_draw_poiont(uint16_t x, uint16_t y, uint16_t color);
+void lcd_draw_point(uint16_t x, uint16_t y, uint16_t color);
+
+void lcd_draw_line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
 
 /**
  * @brief 画水平线
