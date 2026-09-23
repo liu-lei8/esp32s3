@@ -6,7 +6,7 @@
 #include "spi.h"
 #include "xl9555.h"
 #include "lcd.h"
-#include "wifi_scan.h"
+#include "wifi_sta.h"
 
 i2c_obj_t i2c0_master;
 
@@ -26,12 +26,11 @@ void app_main(void)
     xl9555_init(i2c0_master);
     lcd_init();
 
-    lcd_show_string(10, 50, "ESP32-S3", RED, WHITE, 16, 1);
-    lcd_show_string(10, 70, "WIFI SCAN TEST", RED, WHITE, 16, 1);
-    lcd_show_string(10, 90, "AUTHOR@LIU-LEI", RED, WHITE, 16, 1);
-    lcd_draw_line(120, 0, 120, 280, DARKBLUE);
-    
-    wifi_scan();
+    lcd_show_string(30, 50, "ESP32-S3", RED, WHITE, 16, 1);
+    lcd_show_string(30, 70, "WIFI STA TEST", RED, WHITE, 16, 1);
+    lcd_show_string(30, 90, "AUTHOR@LIU-LEI", RED, WHITE, 16, 1);
+
+    wifi_sta_init();
 
     while (1)
     {
