@@ -6,7 +6,7 @@
 #include "spi.h"
 #include "xl9555.h"
 #include "lcd.h"
-#include "wifi_ap.h"
+#include "wifi_smartconfig_sta.h"
 
 i2c_obj_t i2c0_master;
 
@@ -30,7 +30,7 @@ void app_main(void)
     lcd_show_string(30, 70, "WIFI AP TEST", RED, WHITE, 16, 1);
     lcd_show_string(30, 90, "AUTHOR@LIU-LEI", RED, WHITE, 16, 1);
 
-    wifi_softap_init();
+    wifi_smartconfig_sta();
 
     while (1)
     {
