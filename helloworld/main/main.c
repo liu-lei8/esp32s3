@@ -7,7 +7,8 @@
 #include "xl9555.h"
 #include "lcd.h"
 #include "wifi_sta.h"
-#include "lwip_udp.h"
+#include "lwip_tcpclient.h"
+#include "lwip_tcpserver.h"
 
 /* FreeRTOS配置 */
 /* LED_TASK配置
@@ -63,7 +64,7 @@ void app_main(void)
     taskEXIT_CRITICAL(&my_spinlock);
 
     /* lwip测试代码 */
-    lwip_udp_demo();
+    lwip_tcpserver_demo();
 }
 
 
@@ -84,7 +85,7 @@ void key_task(void* arg)
 
         if (key == KEY0_PRES)
         {
-            g_lwip_send_flag |= LWIP_SEND_DATA;     /* 标记LWIP有数据发送 */
+            g_lwip_send_flag2 |= LWIP_SEND_DATA;     /* 标记LWIP有数据发送 */
         }
 
         vTaskDelay(pdMS_TO_TICKS(10));

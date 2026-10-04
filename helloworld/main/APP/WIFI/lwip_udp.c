@@ -1,14 +1,14 @@
 #include "lwip_udp.h"
 
 /* 接收数据缓冲区 */
-uint8_t g_lwip_demo_recvbuf[LWIP_DEMO_RX_BUFSIZE];
+static uint8_t g_lwip_demo_recvbuf[LWIP_DEMO_RX_BUFSIZE];
 /* 发送的数据内容 */
-char g_lwip_demo_sendbuf[] = " hello wifi \r\n";
+static char g_lwip_demo_sendbuf[] = " hello wifi \r\n";
 /* 数据发送的标志位 */
 uint8_t g_lwip_send_flag;
 static struct sockaddr_in dest_addr;                /* 远端地址 */
 struct sockaddr_in g_local_info;
-socklen_t g_sock_fd;                                /* 定义一个socket接口 */
+static socklen_t g_sock_fd;                                /* 定义一个socket接口 */
 
 
 /**
@@ -45,7 +45,7 @@ void lwip_udp_demo(void)
     xTaskCreatePinnedToCore(lwip_send_thread, "lwip_send_thread", 4096, NULL, LWIP_SEND_THREAD_PRIO, NULL, 0);
     /* 远端参数设置 */
     dest_addr.sin_addr.s_addr = inet_addr(IP_ADDR);     /* 目标地址 */
-    dest_addr.sin_family = AF_INET;                     /* 使用ipv4的网络协议 */
+    dest_addr.sin_family = AF_INET;                     /* address family使用ipv4的网络协议 */
     dest_addr.sin_port = htons(LWIP_DEMO_PORT);         /* 目标端口，htons：host to network short(该函数把16位两字节转换为大端字节序) */
 
     g_local_info.sin_addr.s_addr = htons(INADDR_ANY);   /* 设置本地IP地址 */
