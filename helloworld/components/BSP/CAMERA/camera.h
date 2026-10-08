@@ -8,11 +8,11 @@
 
 
 /*引脚配置*/
-#define CAM_PIN_PWDN    GPIO_NUM_NC
-#define CAM_PIN_RESET   GPIO_NUM_NC
-#define CAM_PIN_VSYNC   GPIO_NUM_47
-#define CAM_PIN_HREF    GPIO_NUM_48
-#define CAM_PIN_PCLK    GPIO_NUM_45
+#define CAM_PIN_PWDN    GPIO_NUM_NC     /* 接到xl9555的p04引脚，掉电使能（高电平有效） */
+#define CAM_PIN_RESET   GPIO_NUM_NC     /* 接到xl9555的p05引脚，复位信号（低电平有效）*/
+#define CAM_PIN_VSYNC   GPIO_NUM_47     /* 帧同步信号 */
+#define CAM_PIN_HREF    GPIO_NUM_48     /* 行同步信号 */
+#define CAM_PIN_PCLK    GPIO_NUM_45     /* 像素时钟 */
 #define CAM_PIN_XCLK    GPIO_NUM_NC
 #define CAM_PIN_SIOD    GPIO_NUM_39     /*SCCB数据线*/
 #define CAM_PIN_SIOC    GPIO_NUM_38     /*SCCB时钟线*/

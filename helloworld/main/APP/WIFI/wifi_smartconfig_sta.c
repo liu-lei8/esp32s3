@@ -121,7 +121,7 @@ void wifi_smartconfig_sta(void)
 static void smartconfig_task(void* arg)
 {
     EventBits_t uxBits;
-    /* 设置配网协议 */
+    /* 设置配网协议,V2模式 */
     ESP_ERROR_CHECK(esp_smartconfig_set_type(SC_TYPE_ESPTOUCH_V2));
     /* 设置配网参数 */
     smartconfig_start_config_t cfg = SMARTCONFIG_START_CONFIG_DEFAULT();
