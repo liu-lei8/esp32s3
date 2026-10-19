@@ -1,0 +1,23 @@
+idf_component_register(
+    SRCS
+        "src/bsp_i2c.c"
+        "src/bsp_display.c"
+        "src/bsp_camera.c"
+        "src/xl9555.c"
+        "src/camera.c"
+    INCLUDE_DIRS
+        "include"
+    PRIV_INCLUDE_DIRS
+        "priv_include"
+    REQUIRES
+        esp_driver_gpio
+        esp_driver_i2c
+        esp_driver_spi
+        esp_driver_ledc
+        esp_lcd
+        esp_psram
+        esp32-camera
+    PRIV_REQUIRES
+        esp_video
+        esp_cam_sensor
+)
