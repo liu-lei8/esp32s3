@@ -1,18 +1,18 @@
 set(scr_dirs
-            CAMERA
+            XL9555
+            KEY
             SPI
             LED
             IIC
-            LCD
-            XL9555)
+            LCD)
 
 set(include_dirs
-            CAMERA
+            XL9555
+            KEY
             SPI
             LED
             IIC
-            LCD
-            XL9555)
+            LCD)
 
 set(requires
             driver

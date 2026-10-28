@@ -1,6 +1,27 @@
 #pragma once
 #include "esp_lcd_types.h"
 
+/*常用颜色值*/
+#define WHITE               0xFFFF/*白色*/
+#define BLACK               0x0000/*黑色*/
+#define RED                 0xF800/*红色*/
+#define GREEN               0x07E0/*绿色*/
+#define BLUE                0x001F/*蓝色*/
+#define MAGENTA             0XF81F/*品红色/紫红色= BLUE + RED */
+#define YELLOW              0XFFE0/*黄色= GREEN + RED */
+#define CYAN                0X07FF/*青色= GREEN + BLUE */
+/*非常用颜色*/
+#define BROWN               0XBC40/*棕色*/
+#define BRRED               0XFC07/*棕红色*/
+#define GRAY                0X8430/*灰色*/
+#define DARKBLUE            0X01CF/*深蓝色*/
+#define LIGHTBLUE           0X7D7C/*浅蓝色*/
+#define GRAYBLUE            0X5458/*灰蓝色*/
+#define LIGHTGREEN          0X841F/*浅绿色*/
+#define LGRAY               0XC618/*浅灰色(PANNEL),窗体背景色*/
+#define LGRAYBLUE           0XA651/*浅灰蓝色(中间层颜色) */
+#define LBBLUE              0X2B12/*浅棕蓝色(选择条目的反色) */
+
 #define ESP_LCD_COLOR_FORMAT_RGB565    (1)
 #define ESP_LCD_COLOR_FORMAT_RGB888    (2)
 
@@ -38,6 +59,22 @@ esp_err_t bsp_display_backlight_off(void);
 // 新增：无论是否使用 LVGL 都需要提供这两个函数
 bool bsp_display_lock(uint32_t timeout_ms);
 void bsp_display_unlock(void);
+
+void bsp_display_show_char(uint16_t x, uint16_t y, uint8_t chr, uint16_t fc, uint16_t bc, uint8_t sizey, uint8_t mode);
+void bsp_display_show_string(uint16_t x, uint16_t y, const char* string, uint16_t fc, uint16_t bc, uint8_t sizey, uint8_t mode);
+/**
+ * @brief 在摄像头帧上打印格式化字符串
+ * @param frame   帧缓冲区首地址 (例如 fb->buf)
+ * @param width   帧宽度 (例如 240)
+ * @param height  帧高度 (例如 240)
+ * @param x       起始 X 坐标
+ * @param y       起始 Y 坐标
+ * @param color   字体颜色 (RGB565)
+ * @param sizey   字体大小 (12 16 24 32)
+ * @param format  格式化字符串，例如 "ID: %d"
+ * @param ...     可变参数
+ */
+void frame_printf(uint16_t *frame, int width, int height, int x, int y, uint16_t color, uint8_t sizey, const char *format, ...);
 
 #ifdef __cplusplus
 }

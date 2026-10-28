@@ -8,12 +8,21 @@
 #include "esp_lcd_panel_ops.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "lcdfont.h"
 
 static const char *TAG = "BSP_LCD";
 static bsp_lcd_handles_t s_disp;
 
 #define LCD_CMD_BITS   8
 #define LCD_PARAM_BITS 8
+
+static const unsigned char* get_font_data(uint8_t sizey) {
+    if (sizey == 12) return lcd_asc2_1206[0];
+    else if (sizey == 16) return lcd_asc2_1608[0];
+    else if (sizey == 24) return lcd_asc2_2412[0];
+    else if (sizey == 32) return lcd_asc2_3216[0];
+    return lcd_asc2_1608[0]; // 默认 16
+}
 
 esp_err_t bsp_display_brightness_init(void)
 {
@@ -120,4 +129,128 @@ bool bsp_display_lock(uint32_t timeout_ms)
 void bsp_display_unlock(void)
 {
     // 无 LVGL 时，什么都不做
+}
+
+void bsp_display_show_char(uint16_t x, uint16_t y, uint8_t chr, uint16_t fc, uint16_t bc, uint8_t sizey, uint8_t mode)
+{
+    uint8_t sizex = sizey / 2;
+    uint8_t size = (sizey / 8 + ((sizey % 8) ? 1 : 0)) * sizex; /* 一个字符的字节数 */
+    const uint8_t* p;
+    static uint16_t lcd_buf[32 * 16];       /* 因为esp_lcd_panel_draw_bitmap这个函数是异步的，必须加static */
+    uint8_t temp;
+    uint8_t idex;
+    uint8_t y1 = 0, x1 = 0;
+    uint8_t row = 0;
+
+    uint16_t fc_swap = (fc >> 8) | (fc << 8);
+    uint16_t bc_swap = (bc >> 8) | (bc << 8);
+    p = get_font_data(sizey);
+
+    idex = chr - 32;
+    for (uint8_t i = 0; i < size; i++)  /* 填充颜色到lcd缓冲区 */
+    {
+        temp = p[idex * size + i];      /* 指向字符数组对应编号的第i个字节 */
+        for (uint8_t j = 0; j < 8; j++)
+        {
+            if (temp & 0x80)
+            {
+                lcd_buf[y1 * sizex + x1] = fc_swap;
+            }
+            else
+            {
+                lcd_buf[y1 * sizex + x1] = bc_swap;
+            }
+
+            temp <<= 1;
+            row++;
+            if (row == sizey)
+            {
+                row = 0;
+                x1++;
+                y1 = 0;
+                break;
+            }
+            else 
+            {
+                y1++;
+            }
+        }
+    }
+    
+    x1 = x; y1 = y;
+    if (mode)                           /* 叠加模式 */
+    {
+        for (uint8_t i = 0; i < sizey; i++)
+        {
+            for (uint8_t j = 0; j < sizex; j++)
+            {
+                if (lcd_buf[i * sizex + j] == fc_swap)
+                {
+                    esp_lcd_panel_draw_bitmap(s_disp.panel, x1 + j, y1 + i, x1 + j + 1, y1 + i + 1, &fc_swap);
+                }
+            }
+        }
+    }
+    else                                /* 非叠加模式 */
+    {
+        esp_lcd_panel_draw_bitmap(s_disp.panel, x, y, x + sizex, y + sizey, lcd_buf);
+        // 强制等待一下 DMA 发完，防止返回太快引发冲突
+        vTaskDelay(pdMS_TO_TICKS(2)); 
+    }
+
+}
+
+void bsp_display_show_string(uint16_t x, uint16_t y, const char* string, uint16_t fc, uint16_t bc, uint8_t sizey, uint8_t mode)
+{
+    uint8_t chr;
+    uint16_t chr_num = strlen(string);
+
+    for (uint8_t i = 0; i < chr_num; i++)
+    {
+        chr = *(string + i);
+        bsp_display_show_char(x + i * (sizey / 2), y, chr, fc, bc, sizey, mode);
+    }
+}
+
+void frame_printf(uint16_t *frame, int width, int height, int x, int y, uint16_t color, uint8_t sizey, const char *format, ...)
+{
+    char buffer[128]; 
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args); 
+    va_end(args);
+
+    uint16_t color_swap = (color >> 8) | (color << 8);
+    int cursor_x = x;
+    const uint8_t *font = get_font_data(sizey);
+    uint8_t sizex = sizey / 2;
+    uint8_t size = ((sizey + 7) / 8) * sizex; 
+    
+    for (int i = 0; buffer[i] != '\0'; i++) {
+        uint8_t chr = buffer[i];
+        if (chr < 32 || chr > 126) continue; 
+        
+        uint8_t idex = chr - 32;
+        uint32_t byte_index = 0;
+
+        for (uint8_t col = 0; col < sizex; col++) {
+            for (uint8_t row = 0; row < sizey; row++) {
+                if (row % 8 == 0) {
+                    // 计算字库字节索引 (修正了之前的计算错误)
+                    byte_index = idex * size + col * ((sizey + 7) / 8) + (row / 8);
+                }
+                uint8_t temp = font[byte_index];
+                
+                if (temp & (0x80 >> (row % 8))) {
+                    int px = cursor_x + col;
+                    int py = y + row;
+                    if (px >= 0 && px < width && py >= 0 && py < height) {
+                        frame[py * width + px] = color_swap;
+                    }
+                }
+            }
+        }
+        cursor_x += sizex;
+        if (cursor_x + sizex >= width) break; 
+    }
 }
