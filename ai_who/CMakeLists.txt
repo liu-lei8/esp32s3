@@ -9,7 +9,7 @@ add_compile_definitions(BSP_CONFIG_NO_GRAPHIC_LIB=1)
 
 set(EXTRA_COMPONENT_DIRS
     ${CMAKE_CURRENT_LIST_DIR}/components/BSP
-    ${CMAKE_CURRENT_LIST_DIR}/components/Middlewares/ESP_WHO
+    ${CMAKE_CURRENT_LIST_DIR}/components
 )
 add_compile_options(-fdiagnostics-color=always)
 

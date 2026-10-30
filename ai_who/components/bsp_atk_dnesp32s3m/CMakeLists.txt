@@ -19,6 +19,4 @@ idf_component_register(
         esp_psram
         esp32-camera
     PRIV_REQUIRES
-        esp_video
-        esp_cam_sensor
 )
