@@ -69,7 +69,7 @@ void bsp_display_show_string(uint16_t x, uint16_t y, const char* string, uint16_
  * @param height  帧高度 (例如 240)
  * @param x       起始 X 坐标
  * @param y       起始 Y 坐标
- * @param color   字体颜色 (RGB565)
+ * @param color   字体颜色 (RGB565,内部已经进行了大端序的翻转)
  * @param sizey   字体大小 (12 16 24 32)
  * @param format  格式化字符串，例如 "ID: %d"
  * @param ...     可变参数
