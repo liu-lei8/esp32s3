@@ -1,0 +1,28 @@
+menu "OpenCV Configuration"
+    choice OPENCV_BUILD_MODE
+        prompt "Build Mode"
+        default OPENCV_PREBUILT
+        help
+            Select whether to use prebuilt libraries or build from source.
+
+    config OPENCV_PREBUILT
+        bool "Use prebuilt libraries"
+        help
+            Link against prebuilt OpenCV libraries.
+
+    config OPENCV_BUILD_FROM_SOURCE
+        bool "Build from source"
+        help
+            Build OpenCV from source code.
+    endchoice
+
+    config OPENCV_PREBUILT_PICOLIBC
+    int
+        default 1 if OPENCV_PREBUILT && LIBC_PICOLIBC
+        default 0
+
+    config OPENCV_PREBUILT_NEWLIB
+        int
+        default 1 if OPENCV_PREBUILT && (LIBC_NEWLIB || !LIBC_PICOLIBC)
+        default 0
+endmenu

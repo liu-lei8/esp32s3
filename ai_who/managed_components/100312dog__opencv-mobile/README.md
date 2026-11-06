@@ -1,0 +1,1 @@
+This component provides [opencv-mobile](https://github.com/nihui/opencv-mobile) with source code or prebuilt libraries.

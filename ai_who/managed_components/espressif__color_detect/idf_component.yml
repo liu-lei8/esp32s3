@@ -1,0 +1,13 @@
+dependencies:
+  100312dog/opencv-mobile:
+    version: '*'
+  espressif/esp-dl:
+    version: ~3.3.14
+description: color detect model.
+license: MIT
+repository: git://github.com/espressif/esp-dl.git
+repository_info:
+  commit_sha: eb72563e6a4e61d2bbc0d46e4c79f2c9f816c3c6
+  path: models/color_detect
+url: https://github.com/espressif/esp-dl/tree/master/models/color_detect
+version: 0.1.1

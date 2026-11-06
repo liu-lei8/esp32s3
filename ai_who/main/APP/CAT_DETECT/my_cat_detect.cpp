@@ -20,7 +20,8 @@ void draw_cat_result(uint16_t* lcd_buf, int width, int height, const std::list<d
 {
     if (results.empty()) return;
 
-    uint16_t rec_color = (GREEN >> 8) | (GREEN << 8);
+    uint16_t color = (uint16_t)GREEN;
+    uint16_t rec_color = (color >> 8) | (color << 8);
 
     for (const auto &res : results)
     {

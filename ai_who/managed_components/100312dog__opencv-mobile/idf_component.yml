@@ -1,0 +1,20 @@
+dependencies:
+  100312dog/opencv-mobile-prebuilt-newlib:
+    matches:
+    - if: $CONFIG{OPENCV_PREBUILT_NEWLIB} == 1
+    public: true
+    version: 0.2.1
+  100312dog/opencv-mobile-prebuilt-picolibc:
+    matches:
+    - if: $CONFIG{OPENCV_PREBUILT_PICOLIBC} == 1
+    public: true
+    version: 0.2.1
+  100312dog/opencv-mobile-src:
+    matches:
+    - if: $CONFIG{OPENCV_BUILD_FROM_SOURCE} == True
+    public: true
+    version: 0.2.0
+description: opencv-mobile component.
+license: Apache-2.0
+url: https://github.com/espressif/opencv-mobile
+version: 0.2.1

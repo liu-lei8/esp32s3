@@ -19,3 +19,4 @@ dependencies:
   espressif/human_face_detect: ^0.5.2
   espressif/human_face_recognition: ^0.3.3
   espressif/quirc: ^1.2.0~1
+  espressif/color_detect: ^0.1.1

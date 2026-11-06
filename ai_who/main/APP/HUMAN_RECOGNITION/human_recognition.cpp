@@ -28,7 +28,9 @@ static std::string mount_fr_partition(void) {
     esp_vfs_fat_mount_config_t mount_config = {
         .format_if_mount_failed = true,
         .max_files = 5,
-        .allocation_unit_size = 16 * 1024
+        .allocation_unit_size = 16 * 1024,
+        .disk_status_check_enable = false,
+        .use_one_fat = false
     };
     wl_handle_t wl_handle;
     // 挂载分区名为 "fr"，挂载点为 "/fr"

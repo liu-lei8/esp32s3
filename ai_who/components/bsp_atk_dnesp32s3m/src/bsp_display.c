@@ -24,11 +24,6 @@ static const unsigned char* get_font_data(uint8_t sizey) {
     return lcd_asc2_1608[0]; // 默认 16
 }
 
-esp_err_t bsp_display_brightness_init(void)
-{
-    return xl9555_init_bsp();
-}
-
 esp_err_t bsp_display_brightness_deinit(void) { return ESP_OK; }
 
 esp_err_t bsp_display_brightness_set(int brightness_percent)
@@ -56,8 +51,6 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config,
 esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_lcd_handles_t *ret_handles)
 {
     ESP_RETURN_ON_FALSE(config && ret_handles, ESP_ERR_INVALID_ARG, TAG, "invalid arg");
-    ESP_RETURN_ON_ERROR(bsp_i2c_init(), TAG, "i2c init failed");
-    ESP_RETURN_ON_ERROR(bsp_display_brightness_init(), TAG, "brightness init failed");
 
     // 手动复位 LCD（通过 XL9555）
     ESP_RETURN_ON_ERROR(xl9555_pin_write_bsp(ATK_SLCD_RST_IO, 0), TAG, "rst low failed");

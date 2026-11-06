@@ -2311,6 +2311,23 @@ CONFIG_WIFI_PROV_STA_ALL_CHANNEL_SCAN=y
 # end of Wi-Fi Provisioning Manager
 
 #
+# OpenCV Configuration
+#
+CONFIG_OPENCV_PREBUILT=y
+# CONFIG_OPENCV_BUILD_FROM_SOURCE is not set
+CONFIG_OPENCV_PREBUILT_PICOLIBC=0
+CONFIG_OPENCV_PREBUILT_NEWLIB=1
+# end of OpenCV Configuration
+
+#
+# OpenCV Modules
+#
+# CONFIG_OPENCV_MODULE_VIDEO is not set
+# CONFIG_OPENCV_MODULE_PHOTO is not set
+# CONFIG_OPENCV_MODULE_FEATURES2D is not set
+# end of OpenCV Modules
+
+#
 # models: cat_detect
 #
 CONFIG_FLASH_ESPDET_PICO_224_224_CAT=y
