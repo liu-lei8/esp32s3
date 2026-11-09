@@ -4,12 +4,14 @@ idf_component_register( SRC_DIRS "."
                                  "APP/CAT_DETECT"
                                  "APP/QR_CODE"
                                  "APP/COLOR_DETECT"
+                                 "APP/MOTION_DETECT"
                         INCLUDE_DIRS "."
                                      "APP/HUMAN_RECOGNITION"
                                      "APP/HUMAN_DETECT"
                                      "APP/CAT_DETECT"
                                      "APP/QR_CODE"
                                      "APP/COLOR_DETECT"
+                                     "APP/MOTION_DETECT"
                         REQUIRES
                             BSP
                             fatfs
@@ -19,4 +21,5 @@ idf_component_register( SRC_DIRS "."
                             espressif__cat_detect
                             espressif__quirc
                             espressif__color_detect
+                            espressif__esp-dl
                             esp32-camera)
